@@ -85,8 +85,8 @@ const AISettingsPage = () => {
       description: t("dashboard.settings.ai.deepseek.description"),
       icon: DeepSeekLogo,
       link: "https://platform.deepseek.com",
-      color: "text-purple-500",
-      bgColor: "bg-purple-50 dark:bg-purple-950/50",
+      color: "text-q_acid",
+      bgColor: "bg-q_acid/10 dark:bg-q_acid/20",
       isConfigured: !!deepseekApiKey,
     },
     {
@@ -95,8 +95,8 @@ const AISettingsPage = () => {
       description: t("dashboard.settings.ai.doubao.description"),
       icon: IconDoubao,
       link: "https://console.volcengine.com/ark",
-      color: "text-blue-500",
-      bgColor: "bg-blue-50 dark:bg-blue-950/50",
+      color: "text-q_black",
+      bgColor: "bg-q_white dark:bg-q_white/10",
       isConfigured: !!(doubaoApiKey && doubaoModelId),
     },
     {
@@ -105,8 +105,8 @@ const AISettingsPage = () => {
       description: t("dashboard.settings.ai.openai.description"),
       icon: IconOpenAi,
       link: "https://platform.openai.com/api-keys",
-      color: "text-blue-500",
-      bgColor: "bg-blue-50 dark:bg-blue-950/50",
+      color: "text-q_black",
+      bgColor: "bg-q_white dark:bg-q_white/10",
       isConfigured: !!(openaiApiKey && openaiModelId && openaiApiEndpoint),
     },
     {
@@ -115,8 +115,8 @@ const AISettingsPage = () => {
       description: t("dashboard.settings.ai.gemini.description"),
       icon: Sparkles,
       link: "https://aistudio.google.com/app/apikey",
-      color: "text-amber-500",
-      bgColor: "bg-amber-50 dark:bg-amber-950/50",
+      color: "text-q_acid",
+      bgColor: "bg-q_acid/10 dark:bg-q_acid/20",
       isConfigured: !!(geminiApiKey && geminiModelId),
     },
   ];
@@ -139,16 +139,16 @@ const AISettingsPage = () => {
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left border",
                     "transition-all duration-200 cursor-pointer",
-                    "hover:bg-primary/10 hover:border-primary/30",
+                    "hover:bg-q_acid/10 hover:border-q_acid/30",
                     isViewing
-                      ? "bg-primary/10 border-primary/40"
+                      ? "bg-q_acid/10 border-q_acid/40"
                       : "border-transparent"
                   )}
                 >
                   <div
                     className={cn(
                       "shrink-0",
-                      isViewing ? "text-primary" : "text-muted-foreground"
+                      isViewing ? "text-q_black" : "text-muted-foreground"
                     )}
                     >
                       <Icon className="h-5 w-5" />
@@ -157,7 +157,7 @@ const AISettingsPage = () => {
                     <span
                       className={cn(
                         "font-medium text-sm",
-                        isViewing && "text-primary"
+                        isViewing && "text-q_black"
                       )}
                     >
                       {model.name}
@@ -183,8 +183,8 @@ const AISettingsPage = () => {
                       "h-6 w-6 rounded-md flex items-center justify-center border transition-all",
                       "shrink-0",
                       isChecked
-                        ? "bg-primary border-primary text-primary-foreground"
-                        : "bg-transparent border-muted-foreground/40 text-transparent hover:border-primary/40"
+                        ? "bg-q_acid border-q_acid text-q_bone"
+                        : "bg-transparent border-muted-foreground/40 text-transparent hover:border-q_acid/40"
                     )}
                   >
                     <Check className="h-4 w-4" />
@@ -222,7 +222,7 @@ const AISettingsPage = () => {
                           href={model.link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1"
+                          className="text-xs text-muted-foreground hover:text-q_acid flex items-center gap-1"
                         >
                           {t("dashboard.settings.ai.getApiKey")}
                           <ExternalLink className="h-3 w-3" />
@@ -250,9 +250,9 @@ const AISettingsPage = () => {
                         )}
                         className={cn(
                           "h-11",
-                          "bg-white dark:bg-gray-900",
-                          "border-gray-200 dark:border-gray-800",
-                          "focus:ring-2 focus:ring-primary/20"
+                          "bg-background",
+                          "border-border",
+                          "focus:ring-2 focus:ring-q_acid/20"
                         )}
                       />
                     </div>
@@ -270,9 +270,9 @@ const AISettingsPage = () => {
                           )}
                           className={cn(
                             "h-11",
-                            "bg-white dark:bg-gray-900",
-                            "border-gray-200 dark:border-gray-800",
-                            "focus:ring-2 focus:ring-primary/20"
+                            "bg-background",
+                            "border-border",
+                            "focus:ring-2 focus:ring-q_acid/20"
                           )}
                         />
                       </div>
@@ -291,9 +291,9 @@ const AISettingsPage = () => {
                           )}
                           className={cn(
                             "h-11",
-                            "bg-white dark:bg-gray-900",
-                            "border-gray-200 dark:border-gray-800",
-                            "focus:ring-2 focus:ring-primary/20"
+                            "bg-background",
+                            "border-border",
+                            "focus:ring-2 focus:ring-q_acid/20"
                           )}
                         />
                       </div>
@@ -310,9 +310,9 @@ const AISettingsPage = () => {
                           placeholder={t("dashboard.settings.ai.gemini.modelId")}
                           className={cn(
                             "h-11",
-                            "bg-white dark:bg-gray-900",
-                            "border-gray-200 dark:border-gray-800",
-                            "focus:ring-2 focus:ring-primary/20"
+                            "bg-background",
+                            "border-border",
+                            "focus:ring-2 focus:ring-q_acid/20"
                           )}
                         />
                       </div>
@@ -331,9 +331,9 @@ const AISettingsPage = () => {
                           )}
                           className={cn(
                             "h-11",
-                            "bg-white dark:bg-gray-900",
-                            "border-gray-200 dark:border-gray-800",
-                            "focus:ring-2 focus:ring-primary/20"
+                            "bg-background",
+                            "border-border",
+                            "focus:ring-2 focus:ring-q_acid/20"
                           )}
                         />
                       </div>

@@ -83,7 +83,7 @@ export const ResumeCardItem = ({
                     "dark:hover:border-primary/40"
                 )}
             >
-                <CardContent className="p-0 flex-1 relative bg-gray-50 dark:bg-gray-900 overflow-hidden cursor-pointer">
+                <CardContent className="p-0 flex-1 relative bg-card overflow-hidden cursor-pointer">
                     <div className="absolute inset-0 pb-6 flex items-center justify-center pointer-events-none transition-transform duration-300 group-hover:scale-[1.02] overflow-hidden" ref={containerRef}>
                         <div className="w-full h-full relative origin-top bg-white">
                             <div
@@ -102,13 +102,13 @@ export const ResumeCardItem = ({
                         </div>
                     </div>
 
-                    <div className="absolute inset-x-0 bottom-0 top-[60%] pointer-events-none bg-gradient-to-t from-white via-white/90 to-transparent dark:from-gray-950 dark:via-gray-950/90 z-0"></div>
-                    <div className="absolute inset-x-0 bottom-0 pt-12 pb-3 px-4 flex justify-between items-end border-t border-transparent z-10 transition-colors group-hover:bg-white/50 dark:group-hover:bg-gray-950/50">
+                    <div className="absolute inset-x-0 bottom-0 top-[60%] pointer-events-none bg-gradient-to-t from-white via-white/90 to-transparent dark:from-background dark:via-background/90 z-0"></div>
+                    <div className="absolute inset-x-0 bottom-0 pt-12 pb-3 px-4 flex justify-between items-end border-t border-transparent z-10 transition-colors group-hover:bg-background/70">
                         <div className="flex flex-col w-full">
-                            <span className="text-[15px] font-semibold truncate text-gray-900 dark:text-gray-100 drop-shadow-sm w-[90%]">
+                            <span className="text-[15px] font-semibold truncate text-foreground drop-shadow-sm w-[90%]">
                                 {resume.title || t("dashboard.resumes.untitled")}
                             </span>
-                            <span className="text-[11px] text-gray-600 dark:text-gray-300 mt-0.5 font-medium">
+                            <span className="text-[11px] text-muted-foreground mt-0.5 font-medium">
                                 {t(`dashboard.templates.${templateNameKey}.name`)} · {new Intl.DateTimeFormat(locale, {
                                     year: 'numeric',
                                     month: 'short',
@@ -121,7 +121,7 @@ export const ResumeCardItem = ({
                         </div>
                     </div>
                 </CardContent>
-                <CardFooter className="pt-2 pb-2 px-2 bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800 z-10">
+                <CardFooter className="pt-2 pb-2 px-2 bg-card border-t border-border z-10">
                     <div className="grid grid-cols-2 gap-2 w-full">
                         <motion.div
                             whileHover={{ scale: 1.05 }}
@@ -134,7 +134,7 @@ export const ResumeCardItem = ({
                         >
                             <Button
                                 variant="outline"
-                                className="w-full text-sm hover:bg-gray-100 dark:border-primary/50 dark:hover:bg-primary/10"
+                                className="w-full text-sm hover:bg-accent"
                                 size="sm"
                                 onClick={(e) => {
                                     e.stopPropagation();

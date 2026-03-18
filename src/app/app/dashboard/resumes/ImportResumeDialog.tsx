@@ -76,7 +76,7 @@ export const ImportResumeDialog = ({
               )}
               onClick={() => jsonFileInputRef.current?.click()}
             >
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 transition-colors group-hover:bg-blue-500/20 dark:bg-blue-500/20 dark:text-blue-400">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-q_acid/10 text-q_acid transition-colors group-hover:bg-q_acid/20">
                 <Braces className="h-6 w-6" />
               </div>
               <div className="flex flex-col gap-1">
@@ -100,7 +100,7 @@ export const ImportResumeDialog = ({
               )}
               onClick={() => pdfFileInputRef.current?.click()}
             >
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-red-500/10 text-red-600 transition-colors group-hover:bg-red-500/20 dark:bg-red-500/20 dark:text-red-400">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-q_black/10 text-q_black transition-colors group-hover:bg-q_black/20 dark:bg-q_white/10 dark:text-q_white">
                 <PdfIcon className="h-6 w-6" />
               </div>
               <div className="flex flex-col gap-1">

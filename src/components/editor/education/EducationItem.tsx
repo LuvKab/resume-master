@@ -141,7 +141,6 @@ const EducationItem = ({ education }: { education: Education }) => {
         }}
         className={cn(
           "w-12 flex items-center justify-center border-r shrink-0 touch-none",
-          "dark:border-neutral-800",
           "border-border",
           expandedId === education.id
             ? "cursor-not-allowed"
@@ -188,8 +187,7 @@ const EducationItem = ({ education }: { education: Education }) => {
                   <p
                     className={cn(
                       "text-sm truncate",
-                      "dark:text-neutral-400",
-                      "text-gray-500"
+                      "text-muted-foreground"
                     )}
                   >
                     {[education.major, education.degree]

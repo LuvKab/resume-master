@@ -169,7 +169,7 @@ export function GrammarCheckDrawer() {
                                 "text-[10px] px-2 py-0.5 h-5 font-normal tracking-wide",
                                 error.type === "spelling" 
                                     ? "bg-orange-50 text-orange-600 border-orange-100 dark:bg-orange-950/30 dark:text-orange-400 dark:border-orange-900/50" 
-                                    : "bg-blue-50 text-blue-600 border-blue-100 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-900/50"
+                                    : "bg-q_black/10 text-q_black border-q_black/20 dark:bg-q_white/10 dark:text-q_white dark:border-q_white/20"
                             )}
                         >
                             {error.type === "spelling" ? t("spelling") : t("punctuation")}

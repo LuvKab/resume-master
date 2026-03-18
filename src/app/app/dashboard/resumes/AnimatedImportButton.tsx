@@ -44,10 +44,10 @@ export const AnimatedImportButton = ({ onClick, t }: AnimatedImportButtonProps) 
                             className="flex flex-col"
                         >
                             <div className="flex h-5 w-5 items-center justify-center">
-                                <Braces className="h-4 w-4 text-blue-500" />
+                                <Braces className="h-4 w-4 text-q_acid" />
                             </div>
                             <div className="flex h-5 w-5 items-center justify-center">
-                                <PdfIcon className="h-4 w-4 text-red-500" />
+                                <PdfIcon className="h-4 w-4 text-q_black dark:text-q_bone" />
                             </div>
                         </motion.div>
                     </div>

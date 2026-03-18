@@ -200,7 +200,7 @@ const PreviewPanel = React.forwardRef<HTMLDivElement, PreviewPanelProps>(
     return (
       <div
         ref={previewRef}
-        className="relative w-full h-full  bg-gray-100"
+        className="relative w-full h-full  bg-accent/40"
         style={{
           fontFamily: selectedFontFamily,
         }}

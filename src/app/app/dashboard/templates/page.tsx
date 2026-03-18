@@ -19,13 +19,11 @@ const PREVIEW_MODAL_SCALE = 0.529166667;
 
 const PRESET_COLORS = [
   { name: "default", value: "" },
-  { name: "blue", value: "#3b82f6" },
-  { name: "green", value: "#10b981" },
-  { name: "purple", value: "#8b5cf6" },
-  { name: "orange", value: "#f97316" },
-  { name: "red", value: "#ef4444" },
-  { name: "slate", value: "#475569" },
-  { name: "black", value: "#000000" },
+  { name: "black", value: "#0A0A0A" },
+  { name: "acid", value: "#FF3800" },
+  { name: "graphite", value: "#5C5C5C" },
+  { name: "slate", value: "#3F3F46" },
+  { name: "olive", value: "#5A5F3D" },
 ];
 
 const getTemplateKey = (templateId: string) =>
@@ -123,7 +121,7 @@ const TemplateCardItem = ({
         )}
       >
         <CardContent
-          className="p-0 flex-1 relative bg-gray-50 dark:bg-gray-900 overflow-hidden cursor-pointer"
+          className="p-0 flex-1 relative bg-card overflow-hidden cursor-pointer"
           onClick={onPreview}
         >
           <div
@@ -147,20 +145,20 @@ const TemplateCardItem = ({
             </div>
           </div>
 
-          <div className="absolute inset-x-0 bottom-0 top-[60%] pointer-events-none bg-gradient-to-t from-white via-white/90 to-transparent dark:from-gray-950 dark:via-gray-950/90 z-0" />
-          <div className="absolute inset-x-0 bottom-0 pt-12 pb-3 px-4 flex items-end border-t border-transparent z-10 transition-colors group-hover:bg-white/50 dark:group-hover:bg-gray-950/50">
+          <div className="absolute inset-x-0 bottom-0 top-[60%] pointer-events-none bg-gradient-to-t from-background via-background/90 to-transparent z-0" />
+          <div className="absolute inset-x-0 bottom-0 pt-12 pb-3 px-4 flex items-end border-t border-transparent z-10 transition-colors group-hover:bg-background/70">
             <div className="flex flex-col w-full">
-              <span className="text-[15px] font-semibold truncate text-gray-900 dark:text-gray-100 drop-shadow-sm">
+              <span className="text-[15px] font-semibold truncate text-foreground drop-shadow-sm">
                 {templateName}
               </span>
-              <span className="text-[11px] text-gray-600 dark:text-gray-300 mt-0.5 font-medium truncate">
+              <span className="text-[11px] text-muted-foreground mt-0.5 font-medium truncate">
                 {templateDescription}
               </span>
             </div>
           </div>
         </CardContent>
 
-        <CardFooter className="pt-2 pb-2 px-2 bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800 z-10">
+        <CardFooter className="pt-2 pb-2 px-2 bg-card border-t border-border z-10">
           <div className="grid grid-cols-2 gap-2 w-full">
             <motion.div
               whileHover={{ scale: 1.05 }}
@@ -169,7 +167,7 @@ const TemplateCardItem = ({
             >
               <Button
                 variant="outline"
-                className="w-full text-sm hover:bg-gray-100 dark:border-primary/50 dark:hover:bg-primary/10"
+                className="w-full text-sm hover:bg-accent"
                 size="sm"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -274,7 +272,7 @@ const TemplatesPage = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <h2 className="text-3xl font-bold tracking-tight">{t("title")}</h2>
 
-            <div className="flex items-center space-x-2 bg-gray-50/50 dark:bg-gray-900/50 p-2 rounded-full border border-gray-100 dark:border-gray-800 backdrop-blur-sm self-start sm:self-auto overflow-x-auto">
+            <div className="flex items-center space-x-2 bg-card/70 p-2 rounded-full border border-border backdrop-blur-sm self-start sm:self-auto overflow-x-auto">
               {PRESET_COLORS.map((color) => (
                 <button
                   key={color.name}
@@ -283,7 +281,7 @@ const TemplatesPage = () => {
                   className={cn(
                     "relative w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-transform hover:scale-110",
                     selectedColor === color.value
-                      ? "ring-2 ring-primary ring-offset-2 dark:ring-offset-gray-950 scale-110"
+                      ? "ring-2 ring-primary ring-offset-2 dark:ring-offset-background scale-110"
                       : ""
                   )}
                   title={color.name === "default" ? "Default" : color.name}
@@ -294,8 +292,8 @@ const TemplatesPage = () => {
                       style={{ backgroundColor: color.value }}
                     />
                   ) : (
-                    <div className="w-full h-full rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 border border-gray-300 dark:border-gray-700 shadow-sm flex items-center justify-center">
-                      <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium tracking-tighter">
+                    <div className="w-full h-full rounded-full bg-gradient-to-br from-q_bone to-q_white dark:from-q_graphite/40 dark:to-q_graphite/70 border border-border shadow-sm flex items-center justify-center">
+                      <span className="text-[10px] text-muted-foreground font-medium tracking-tighter">
                         Tpl
                       </span>
                     </div>
@@ -333,16 +331,16 @@ const TemplatesPage = () => {
             }}
           >
             {activePreviewTemplate && (
-              <DialogContent className="max-w-[680px] p-0 overflow-hidden border-0 shadow-lg rounded-xl bg-white dark:bg-gray-900">
+              <DialogContent className="max-w-[680px] p-0 overflow-hidden border border-border shadow-lg rounded-xl bg-background">
                 <div className="flex flex-col">
-                  <div className="border-b border-gray-100 dark:border-gray-800 px-4 py-4">
+                  <div className="border-b border-border px-4 py-4">
                     <DialogTitle className="text-lg font-medium">
                       {t(`${getTemplateKey(activePreviewTemplate.id)}.name`)}
                     </DialogTitle>
                   </div>
-                  <div className="overflow-hidden flex items-center justify-center bg-gray-50 dark:bg-gray-950 py-8 pointer-events-none">
+                  <div className="overflow-hidden flex items-center justify-center bg-accent/40 py-8 pointer-events-none">
                     <div
-                      className="relative bg-white shadow-md ring-1 ring-gray-200/50 overflow-hidden"
+                      className="relative bg-white shadow-md ring-1 ring-border/60 overflow-hidden"
                       style={{ width: "420px", height: "594px" }}
                     >
                       <div
@@ -375,7 +373,7 @@ const TemplatesPage = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="p-3 pt-2 border-t border-gray-100 dark:border-gray-800 flex justify-center">
+                  <div className="p-3 pt-2 border-t border-border flex justify-center">
                     <Button
                       className="w-full"
                       onClick={() => {

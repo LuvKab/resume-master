@@ -340,7 +340,7 @@ export default function Home() {
               order={3}
               collapsible={false}
               defaultSize={panelSizes?.[2]}
-              className={cn("bg-gray-100", previewPanelCollapsed && "hidden")}
+              className={cn("bg-accent/40", previewPanelCollapsed && "hidden")}
             >
               <div
                 className="h-full overflow-y-auto"

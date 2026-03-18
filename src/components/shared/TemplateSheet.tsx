@@ -37,10 +37,10 @@ const TemplatePreview = ({
         "relative group rounded-lg overflow-hidden border-2 transition-all duration-200 hover:scale-[1.02] text-left",
         isActive
           ? "border-primary dark:border-primary shadow-lg dark:shadow-primary/30"
-          : "border-gray-100 hover:border-gray-200 dark:border-neutral-800 dark:hover:border-neutral-700"
+          : "border-border/70 hover:border-q_acid/40"
       )}
     >
-      <div className="relative aspect-[210/297] w-full overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <div className="relative aspect-[210/297] w-full overflow-hidden bg-accent/40">
         {snapshotSrc ? (
           <img
             src={snapshotSrc}
@@ -50,7 +50,7 @@ const TemplatePreview = ({
             draggable={false}
           />
         ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-gray-50 to-gray-100 text-gray-500 dark:from-neutral-900 dark:to-neutral-950 dark:text-neutral-400">
+          <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-q_bone to-q_white text-muted-foreground dark:from-q_graphite/40 dark:to-q_graphite/70 dark:text-q_bone/80">
             <ImageIcon className="h-8 w-8" />
             <span className="px-4 text-center text-sm font-medium">
               {template.name}
@@ -61,7 +61,7 @@ const TemplatePreview = ({
       {isActive && (
         <motion.div
           layoutId="template-selected"
-          className="absolute inset-0 z-20 flex items-center justify-center bg-black/10 dark:bg-black/40 pointer-events-none"
+          className="absolute inset-0 z-20 flex items-center justify-center bg-q_black/10 dark:bg-q_black/30 pointer-events-none"
         >
           <Layout className="h-8 w-8 text-primary shadow-sm" />
         </motion.div>

@@ -23,7 +23,7 @@ const LayoutSetting = ({
   const draggableSections = menuSections.filter((item) => item.id !== "basic");
 
   return (
-    <div className="space-y-4  rounded-lg dark:bg-neutral-900/30">
+    <div className="space-y-4  rounded-lg bg-card/40">
       {basicSection && (
         <LayoutItem
           item={basicSection}

@@ -197,8 +197,8 @@ export default function AIPolishDialog({
       <DialogContent
         className={cn(
           "sm:max-w-[1000px]",
-          "bg-white dark:bg-neutral-900",
-          "border-neutral-200 dark:border-neutral-800",
+          "bg-background",
+          "border-border",
           "rounded-2xl shadow-2xl dark:shadow-none"
         )}
         onPointerDownOutside={(e) => {
@@ -215,13 +215,12 @@ export default function AIPolishDialog({
           <DialogTitle
             className={cn(
               "flex items-center gap-2 text-2xl",
-              "text-neutral-800 dark:text-neutral-100"
+              "text-foreground"
             )}
           >
             <Sparkles
               className={cn(
-                "h-6 w-6 text-primary animate-pulse",
-                "dark:text-primary-400"
+                "h-6 w-6 text-q_acid animate-pulse"
               )}
             />
             {t("title")}
@@ -229,7 +228,7 @@ export default function AIPolishDialog({
           <DialogDescription
             className={cn(
               "text-base",
-              "text-neutral-600 dark:text-neutral-400"
+              "text-muted-foreground"
             )}
           >
             {isPolishing
@@ -245,7 +244,7 @@ export default function AIPolishDialog({
             htmlFor="custom-instructions"
             className={cn(
               "text-sm font-medium",
-              "text-neutral-600 dark:text-neutral-400"
+              "text-muted-foreground"
             )}
           >
             {t("customInstructions")}
@@ -259,10 +258,10 @@ export default function AIPolishDialog({
             rows={2}
             className={cn(
               "resize-none rounded-xl border",
-              "bg-neutral-50 dark:bg-neutral-800/50",
-              "border-neutral-200 dark:border-neutral-800",
-              "text-neutral-700 dark:text-neutral-300",
-              "placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
+              "bg-background/80",
+              "border-border",
+              "text-foreground/90",
+              "placeholder:text-muted-foreground"
             )}
           />
         </div>
@@ -273,13 +272,13 @@ export default function AIPolishDialog({
               <div
                 className={cn(
                   "w-1.5 h-1.5 rounded-full",
-                  "bg-neutral-500 dark:bg-neutral-600"
+                  "bg-q_graphite/70"
                 )}
               ></div>
               <span
                 className={cn(
                   "text-sm font-medium",
-                  "text-neutral-600 dark:text-neutral-400"
+                  "text-muted-foreground"
                 )}
               >
                 {t("content.original")}
@@ -288,15 +287,15 @@ export default function AIPolishDialog({
             <div
               className={cn(
                 "relative rounded-xl border",
-                "bg-neutral-50 dark:bg-neutral-800/50",
-                "border-neutral-200 dark:border-neutral-800",
+                "bg-background/80",
+                "border-border",
                 "p-6 h-[400px] overflow-auto shadow-sm"
               )}
             >
               <Streamdown
                 className={cn(
                   "prose dark:prose-invert max-w-none",
-                  "text-neutral-700 dark:text-neutral-300"
+                  "text-foreground/90"
                 )}
               >
                 {turndownService.turndown(content)}
@@ -315,7 +314,7 @@ export default function AIPolishDialog({
               <span
                 className={cn(
                   "text-sm font-medium",
-                  "text-primary dark:text-primary-400"
+                  "text-q_acid"
                 )}
               >
                 {t("content.polished")}
@@ -325,8 +324,8 @@ export default function AIPolishDialog({
               ref={polishedContentRef}
               className={cn(
                 "relative rounded-xl border",
-                "bg-primary/[0.03] dark:bg-primary/[0.1]",
-                "border-primary/20 dark:border-primary/30",
+                "bg-q_acid/5 dark:bg-q_acid/10",
+                "border-q_acid/25",
                 "p-6 h-[400px] overflow-auto shadow-sm scroll-smooth"
               )}
             >
@@ -335,7 +334,7 @@ export default function AIPolishDialog({
                 isAnimating={isPolishing}
                 className={cn(
                   "prose dark:prose-invert max-w-none",
-                  "text-neutral-800 dark:text-neutral-200"
+                  "text-foreground"
                 )}
               >
                 {polishedContent}
@@ -348,7 +347,7 @@ export default function AIPolishDialog({
           <Button
             onClick={handlePolish}
             disabled={isPolishing}
-            className="flex-1 bg-gradient-to-r from-[#9333EA] to-[#EC4899] hover:opacity-90 text-white border-none h-11 shadow-lg shadow-purple-500/20"
+            className="flex-1 bg-q_black hover:bg-q_acid text-q_bone border-none h-11 shadow-lg shadow-q_black/20"
           >
             {isPolishing ? (
               <div className="flex items-center gap-2">
@@ -365,7 +364,7 @@ export default function AIPolishDialog({
           <Button
             onClick={handleApply}
             disabled={!polishedContent || isPolishing}
-            className="flex-1 bg-primary hover:bg-primary/90 text-white h-11 shadow-lg shadow-primary/20"
+            className="flex-1 bg-q_acid hover:bg-q_acid/90 text-q_bone h-11 shadow-lg shadow-q_acid/20"
           >
             {t("button.apply")}
           </Button>

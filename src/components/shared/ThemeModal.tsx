@@ -49,7 +49,7 @@ const ThemeModal = ({
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <circle cx="100" cy="100" r="70" fill="hsl(262.1, 83.3%, 57.8%)" />
+          <circle cx="100" cy="100" r="70" fill="#FF3800" />
           <rect
             x="70"
             y="85"
@@ -81,7 +81,7 @@ const ThemeModal = ({
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent
         onClick={(e) => e.stopPropagation()}
-        className="max-w-md rounded-[32px] border-none dark:bg-neutral-900 bg-white p-0 shadow-xl"
+        className="max-w-md rounded-[32px] border border-border bg-background p-0 shadow-xl"
       >
         <div className="relative overflow-hidden p-6">
           <div className="absolute -left-16 -top-16 h-32 w-32 rounded-full bg-primary/20" />
@@ -100,17 +100,17 @@ const ThemeModal = ({
             </motion.div>
 
             <AlertDialogHeader>
-              <AlertDialogTitle className="text-center text-xl font-bold text-gray-900 dark:text-neutral-200">
+              <AlertDialogTitle className="text-center text-xl font-bold text-foreground">
                 {content.title}
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-center text-gray-500 dark:text-neutral-400">
+              <AlertDialogDescription className="text-center text-muted-foreground">
                 {content.description}
                 {/* 渲染成组件 */}
               </AlertDialogDescription>
             </AlertDialogHeader>
 
             <AlertDialogFooter className="mt-8 flex w-full gap-4 sm:flex-row">
-              <AlertDialogCancel className="flex-1 rounded-full dark:bg-gray-800 dark:text-neutral-200  text-base font-semibold text-gray-800 ">
+              <AlertDialogCancel className="flex-1 rounded-full border border-border bg-background text-foreground text-base font-semibold hover:bg-accent ">
                 {t("cancelText")}
               </AlertDialogCancel>
               <AlertDialogAction
@@ -121,7 +121,7 @@ const ThemeModal = ({
               >
                 <span className="relative z-10">{content.confirmText}</span>
                 <motion.div
-                  className="absolute inset-0 bg-red-600"
+                  className="absolute inset-0 bg-q_acid"
                   initial={false}
                   animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
                 />
