@@ -1,0 +1,13 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <style>
+    .stroke { stroke: #0A0A0A; }
+    .fill { fill: #0A0A0A; }
+    @media (prefers-color-scheme: dark) {
+      .stroke { stroke: #FFFFFF; }
+      .fill { fill: #FFFFFF; }
+    }
+  </style>
+  <rect x="20" y="12" width="88" height="104" rx="8" class="stroke" stroke-width="8"/>
+  <path d="M84 12V40H108" class="stroke" stroke-width="8" stroke-linejoin="round"/>
+  <rect x="36" y="56" width="56" height="8" rx="4" class="fill"/>
+</svg>
