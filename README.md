@@ -111,7 +111,7 @@ OPENAI_API_ENDPOINT=...
 
 1. `/api/pdf` 会返回 `503` 与 `PDF_LOCAL_DISABLED_ON_VERCEL`（预期降级，不是故障）。
 2. 前端会自动继续兼容导出通道；兼容通道失败时可改用浏览器打印导出。
-3. 本地开发或自托管环境仍保留 `/api/pdf` 的本地 Puppeteer 导出能力。
+3. 本地开发或自托管环境默认走兼容通道；如需启用 `/api/pdf` 本地导出，请额外安装 `puppeteer`。
 
 ## 7. 常用命令
 

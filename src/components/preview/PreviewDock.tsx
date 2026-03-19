@@ -20,8 +20,11 @@ import { useRouter } from "@/lib/navigation";
 import { exportResumeToBrowserPrint } from "@/utils/print";
 import {
   exportToPdf,
+  isLocalPdfRetryUnavailable,
+  isLocalPdfRuntimeMissing,
   isVercelLocalPdfDisabled,
   PDF_LOCAL_DISABLED_ON_VERCEL,
+  PDF_LOCAL_RUNTIME_MISSING,
   type ExportToPdfResult,
   type PdfExportChannel,
   type PdfExportStrategy
@@ -240,10 +243,14 @@ const PreviewDock = ({
 
   const isLoading = isExporting || isExportingJson;
   const localExportDisabledOnVercel = isVercelLocalPdfDisabled(exportFailureResult);
+  const localPdfRuntimeMissing = isLocalPdfRuntimeMissing(exportFailureResult);
+  const localRetryUnavailable = isLocalPdfRetryUnavailable(exportFailureResult);
   const exportFailedAttempts =
     exportFailureResult?.attempts.filter(
       (attempt) =>
-        !attempt.ok && attempt.code !== PDF_LOCAL_DISABLED_ON_VERCEL
+        !attempt.ok &&
+        attempt.code !== PDF_LOCAL_DISABLED_ON_VERCEL &&
+        attempt.code !== PDF_LOCAL_RUNTIME_MISSING
     ) || [];
   const channelLabel = (channel: PdfExportChannel) =>
     channel === "local" ? t("exportFailure.localChannel") : t("exportFailure.remoteChannel");
@@ -550,6 +557,11 @@ const PreviewDock = ({
               {t("exportFailure.localDisabledOnVercel")}
             </div>
           )}
+          {localPdfRuntimeMissing && !localExportDisabledOnVercel && (
+            <div className="text-xs text-muted-foreground">
+              {t("exportFailure.localRuntimeMissing")}
+            </div>
+          )}
           <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
             <Button
               variant="outline"
@@ -558,7 +570,7 @@ const PreviewDock = ({
             >
               {t("exportFailure.cancel")}
             </Button>
-            {!localExportDisabledOnVercel && (
+            {!localRetryUnavailable && (
               <Button
                 variant="outline"
                 onClick={() => void runPdfExport("local-only")}

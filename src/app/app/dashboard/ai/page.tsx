@@ -1,19 +1,19 @@
 import type { ComponentType } from "react";
 import { useEffect, useMemo, useState } from "react";
-import { Check, ExternalLink } from "lucide-react";
 import {
-  DeepSeek,
-  Doubao,
-  Gemini,
-  Kimi,
-  LmStudio,
-  Ollama,
-  OpenAI,
-  OpenRouter,
-  Qwen,
-  SiliconCloud,
-  Zhipu,
-} from "@lobehub/icons";
+  Aperture,
+  Bot,
+  Check,
+  Cpu,
+  ExternalLink,
+  Gem,
+  Globe,
+  Lightbulb,
+  MessageCircle,
+  MoonStar,
+  Monitor,
+  Server,
+} from "lucide-react";
 import { useTranslations } from "@/i18n/compat/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,17 +29,17 @@ import {
 
 const providerIcons: Record<AIModelType, ComponentType<{ className?: string }>> =
   {
-    deepseek: DeepSeek.Color,
-    doubao: Doubao.Color,
-    openai: OpenAI,
-    gemini: Gemini.Color,
-    qwen: Qwen.Color,
-    zhipu: Zhipu.Color,
-    kimi: Kimi,
-    siliconflow: SiliconCloud.Color,
-    ollama: Ollama,
-    lmstudio: LmStudio,
-    customProxy: OpenRouter,
+    deepseek: Bot,
+    doubao: MessageCircle,
+    openai: Aperture,
+    gemini: Gem,
+    qwen: MessageCircle,
+    zhipu: Lightbulb,
+    kimi: MoonStar,
+    siliconflow: Cpu,
+    ollama: Server,
+    lmstudio: Monitor,
+    customProxy: Globe,
   };
 
 const AISettingsPage = () => {

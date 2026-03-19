@@ -12,8 +12,11 @@ import { useResumeStore } from "@/store/useResumeStore";
 import { Button } from "@/components/ui/button";
 import {
   exportToPdf,
+  isLocalPdfRetryUnavailable,
+  isLocalPdfRuntimeMissing,
   isVercelLocalPdfDisabled,
   PDF_LOCAL_DISABLED_ON_VERCEL,
+  PDF_LOCAL_RUNTIME_MISSING,
   type ExportToPdfResult,
   type PdfExportChannel,
   type PdfExportStrategy
@@ -113,10 +116,14 @@ const PdfExport = () => {
 
   const isLoading = isExporting || isExportingJson;
   const localExportDisabledOnVercel = isVercelLocalPdfDisabled(exportFailureResult);
+  const localPdfRuntimeMissing = isLocalPdfRuntimeMissing(exportFailureResult);
+  const localRetryUnavailable = isLocalPdfRetryUnavailable(exportFailureResult);
   const exportFailedAttempts =
     exportFailureResult?.attempts.filter(
       (attempt) =>
-        !attempt.ok && attempt.code !== PDF_LOCAL_DISABLED_ON_VERCEL
+        !attempt.ok &&
+        attempt.code !== PDF_LOCAL_DISABLED_ON_VERCEL &&
+        attempt.code !== PDF_LOCAL_RUNTIME_MISSING
     ) || [];
   const channelLabel = (channel: PdfExportChannel) =>
     channel === "local"
@@ -187,6 +194,11 @@ const PdfExport = () => {
               {tPreview("exportFailure.localDisabledOnVercel")}
             </div>
           )}
+          {localPdfRuntimeMissing && !localExportDisabledOnVercel && (
+            <div className="text-xs text-muted-foreground">
+              {tPreview("exportFailure.localRuntimeMissing")}
+            </div>
+          )}
           <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
             <Button
               variant="outline"
@@ -195,7 +207,7 @@ const PdfExport = () => {
             >
               {tPreview("exportFailure.cancel")}
             </Button>
-            {!localExportDisabledOnVercel && (
+            {!localRetryUnavailable && (
               <Button
                 variant="outline"
                 onClick={() => void runPdfExport("local-only")}

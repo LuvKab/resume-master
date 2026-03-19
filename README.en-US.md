@@ -112,7 +112,7 @@ OPENAI_API_ENDPOINT=...
 
 1. `/api/pdf` returns `503` with `PDF_LOCAL_DISABLED_ON_VERCEL` (expected degrade, not an outage).
 2. Frontend export automatically continues with compatibility channel; if that also fails, use browser print fallback.
-3. Local development and self-hosted runtime keep local Puppeteer export via `/api/pdf`.
+3. Local development and self-hosted runtime use compatibility export by default. Install `puppeteer` only if you want to re-enable local `/api/pdf` export.
 
 ## 7. Common Commands
 

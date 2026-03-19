@@ -80,6 +80,7 @@ export interface ExportToPdfOptions {
 export type PdfExportChannel = "local" | "remote";
 export type PdfExportStrategy = "auto" | "local-only" | "remote-only";
 export const PDF_LOCAL_DISABLED_ON_VERCEL = "PDF_LOCAL_DISABLED_ON_VERCEL";
+export const PDF_LOCAL_RUNTIME_MISSING = "PDF_LOCAL_RUNTIME_MISSING";
 
 export interface PdfExportAttempt {
   channel: PdfExportChannel;
@@ -124,6 +125,34 @@ export const isVercelLocalPdfDisabled = (
       (attempt) =>
         attempt.channel === "local" &&
         attempt.code === PDF_LOCAL_DISABLED_ON_VERCEL
+    )
+  );
+
+export const isLocalPdfRuntimeMissing = (
+  result?: ExportToPdfResult | null
+) =>
+  Boolean(
+    result?.attempts.some(
+      (attempt) =>
+        attempt.channel === "local" &&
+        attempt.code === PDF_LOCAL_RUNTIME_MISSING
+    )
+  );
+
+const LOCAL_PDF_RETRY_UNAVAILABLE_CODES = new Set([
+  PDF_LOCAL_DISABLED_ON_VERCEL,
+  PDF_LOCAL_RUNTIME_MISSING,
+]);
+
+export const isLocalPdfRetryUnavailable = (
+  result?: ExportToPdfResult | null
+) =>
+  Boolean(
+    result?.attempts.some(
+      (attempt) =>
+        attempt.channel === "local" &&
+        attempt.code &&
+        LOCAL_PDF_RETRY_UNAVAILABLE_CODES.has(attempt.code)
     )
   );
 
@@ -254,18 +283,25 @@ export const exportToPdf = async ({
 
         if (!response.ok) {
           const parsedError = await parseErrorPayload(response);
-          const expectedVercelDegrade =
+          const expectedLocalDegrade =
             channel === "local" &&
-            parsedError.code === PDF_LOCAL_DISABLED_ON_VERCEL;
+            Boolean(
+              parsedError.code &&
+              LOCAL_PDF_RETRY_UNAVAILABLE_CODES.has(parsedError.code)
+            );
+          const expectedMessage =
+            parsedError.code === PDF_LOCAL_DISABLED_ON_VERCEL
+              ? "Local export is disabled on Vercel. Switched to compatibility export."
+              : parsedError.code === PDF_LOCAL_RUNTIME_MISSING
+                ? "Local PDF runtime is unavailable. Switched to compatibility export."
+                : parsedError.message;
           attempts.push({
             channel,
             url,
             ok: false,
             status: response.status,
             code: parsedError.code,
-            message: expectedVercelDegrade
-              ? "Local export is disabled on Vercel. Switched to compatibility export."
-              : parsedError.message,
+            message: expectedLocalDegrade ? expectedMessage : parsedError.message,
           });
           continue;
         }

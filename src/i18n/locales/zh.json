@@ -773,6 +773,7 @@
       "retryLocal": "重试本地导出",
       "retryRemote": "重试兼容通道",
       "localDisabledOnVercel": "Vercel 环境已禁用本地 PDF 导出，请使用兼容通道或浏览器打印。",
+      "localRuntimeMissing": "当前环境未安装本地 PDF 运行时，请使用兼容通道或浏览器打印。",
       "usePrint": "改用浏览器打印",
       "cancel": "取消",
       "previewMissing": "未找到简历预览区域，无法导出"

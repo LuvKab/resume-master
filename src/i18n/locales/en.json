@@ -355,6 +355,7 @@
       "retryLocal": "Retry local export",
       "retryRemote": "Retry compatibility channel",
       "localDisabledOnVercel": "Vercel has local PDF export disabled. Use compatibility export or browser print.",
+      "localRuntimeMissing": "Local PDF runtime is not installed in this environment. Use compatibility export or browser print.",
       "usePrint": "Use browser print",
       "cancel": "Cancel",
       "previewMissing": "Resume preview area not found"

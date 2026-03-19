@@ -7,12 +7,44 @@ interface PdfRequestPayload {
   margin?: number;
 }
 
-type PuppeteerModule = typeof import("puppeteer");
-type PuppeteerBrowser = Awaited<ReturnType<PuppeteerModule["launch"]>>;
+interface BrowserLaunchOptions {
+  headless?: boolean | "new";
+  args?: string[];
+  executablePath?: string;
+}
+
+interface PuppeteerPage {
+  setViewport: (options: {
+    width: number;
+    height: number;
+    deviceScaleFactor?: number;
+  }) => Promise<void>;
+  setContent: (html: string, options: { waitUntil: "networkidle0" }) => Promise<void>;
+  pdf: (options: {
+    format: "A4";
+    printBackground: boolean;
+    preferCSSPageSize: boolean;
+    margin: {
+      top: string;
+      right: string;
+      bottom: string;
+      left: string;
+    };
+  }) => Promise<Buffer>;
+}
+
+interface PuppeteerBrowser {
+  newPage: () => Promise<PuppeteerPage>;
+  close: () => Promise<void>;
+}
+
+interface PuppeteerModule {
+  launch: (options?: BrowserLaunchOptions) => Promise<PuppeteerBrowser>;
+}
 
 interface BrowserLaunchCandidate {
   name: string;
-  options: Parameters<PuppeteerModule["launch"]>[0];
+  options: BrowserLaunchOptions;
 }
 
 const BASE_PUPPETEER_ARGS = ["--no-sandbox", "--disable-setuid-sandbox"];
@@ -22,7 +54,31 @@ const toErrorMessage = (error: unknown) =>
 
 const isVercelRuntime = () => Boolean(process.env.VERCEL);
 
-const loadPuppeteer = async (): Promise<PuppeteerModule> => import("puppeteer");
+const runtimeImport = new Function(
+  "moduleId",
+  "return import(moduleId)"
+) as (moduleId: string) => Promise<unknown>;
+
+const loadPuppeteer = async (): Promise<PuppeteerModule | null> => {
+  try {
+    const importedModule = (await runtimeImport("puppeteer")) as {
+      default?: unknown;
+      launch?: unknown;
+    };
+
+    const candidate = (importedModule.default ?? importedModule) as {
+      launch?: unknown;
+    };
+
+    if (typeof candidate.launch !== "function") {
+      return null;
+    }
+
+    return candidate as PuppeteerModule;
+  } catch {
+    return null;
+  }
+};
 
 const jsonError = (
   status: number,
@@ -86,33 +142,6 @@ const createLaunchCandidates = async () => {
     });
   }
 
-  try {
-    const chromiumModule = await import("@sparticuz/chromium");
-    const chromium = (chromiumModule as any).default ?? chromiumModule;
-    const executablePath =
-      typeof chromium?.executablePath === "function"
-        ? await chromium.executablePath()
-        : "";
-
-    if (typeof executablePath === "string" && executablePath.length > 0) {
-      const chromiumArgs = Array.isArray(chromium?.args) ? chromium.args : [];
-      const sparticuzArgs = Array.from(
-        new Set([...BASE_PUPPETEER_ARGS, ...chromiumArgs])
-      );
-      candidates.push({
-        name: "sparticuz",
-        options: {
-          headless:
-            typeof chromium?.headless === "boolean" ? chromium.headless : true,
-          executablePath,
-          args: sparticuzArgs,
-        },
-      });
-    }
-  } catch {
-    // Ignore: this fallback is optional in local environments.
-  }
-
   return candidates;
 };
 
@@ -132,18 +161,6 @@ export const Route = createFileRoute("/api/pdf")({
         const launchErrors: string[] = [];
 
         try {
-          let puppeteer: PuppeteerModule;
-          try {
-            puppeteer = await loadPuppeteer();
-          } catch (error) {
-            return jsonError(
-              500,
-              "PDF_LAUNCH_FAILED",
-              "Failed to load Puppeteer runtime for PDF export.",
-              toErrorMessage(error)
-            );
-          }
-
           let body: PdfRequestPayload;
           try {
             body = (await request.json()) as PdfRequestPayload;
@@ -165,6 +182,15 @@ export const Route = createFileRoute("/api/pdf")({
               400,
               "PDF_INVALID_REQUEST",
               "Missing content for PDF export."
+            );
+          }
+
+          const puppeteer = await loadPuppeteer();
+          if (!puppeteer) {
+            return jsonError(
+              503,
+              "PDF_LOCAL_RUNTIME_MISSING",
+              "Local PDF runtime is unavailable. Install optional dependency 'puppeteer', or use compatibility export / browser print."
             );
           }
 
