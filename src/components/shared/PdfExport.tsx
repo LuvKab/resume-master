@@ -12,6 +12,8 @@ import { useResumeStore } from "@/store/useResumeStore";
 import { Button } from "@/components/ui/button";
 import {
   exportToPdf,
+  isVercelLocalPdfDisabled,
+  PDF_LOCAL_DISABLED_ON_VERCEL,
   type ExportToPdfResult,
   type PdfExportChannel,
   type PdfExportStrategy
@@ -110,7 +112,12 @@ const PdfExport = () => {
   };
 
   const isLoading = isExporting || isExportingJson;
-  const exportFailedAttempts = exportFailureResult?.attempts.filter((attempt) => !attempt.ok) || [];
+  const localExportDisabledOnVercel = isVercelLocalPdfDisabled(exportFailureResult);
+  const exportFailedAttempts =
+    exportFailureResult?.attempts.filter(
+      (attempt) =>
+        !attempt.ok && attempt.code !== PDF_LOCAL_DISABLED_ON_VERCEL
+    ) || [];
   const channelLabel = (channel: PdfExportChannel) =>
     channel === "local"
       ? tPreview("exportFailure.localChannel")
@@ -175,6 +182,11 @@ const PdfExport = () => {
               ))}
             </div>
           )}
+          {localExportDisabledOnVercel && (
+            <div className="text-xs text-muted-foreground">
+              {tPreview("exportFailure.localDisabledOnVercel")}
+            </div>
+          )}
           <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
             <Button
               variant="outline"
@@ -183,13 +195,15 @@ const PdfExport = () => {
             >
               {tPreview("exportFailure.cancel")}
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => void runPdfExport("local-only")}
-              disabled={isExporting}
-            >
-              {tPreview("exportFailure.retryLocal")}
-            </Button>
+            {!localExportDisabledOnVercel && (
+              <Button
+                variant="outline"
+                onClick={() => void runPdfExport("local-only")}
+                disabled={isExporting}
+              >
+                {tPreview("exportFailure.retryLocal")}
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => void runPdfExport("remote-only")}

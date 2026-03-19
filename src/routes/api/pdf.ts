@@ -1,4 +1,3 @@
-import puppeteer from "puppeteer";
 import { createFileRoute } from "@tanstack/react-router";
 import { A4_HEIGHT_PX, A4_WIDTH_PX } from "@/lib/a4";
 
@@ -8,15 +7,22 @@ interface PdfRequestPayload {
   margin?: number;
 }
 
+type PuppeteerModule = typeof import("puppeteer");
+type PuppeteerBrowser = Awaited<ReturnType<PuppeteerModule["launch"]>>;
+
 interface BrowserLaunchCandidate {
   name: string;
-  options: Parameters<typeof puppeteer.launch>[0];
+  options: Parameters<PuppeteerModule["launch"]>[0];
 }
 
 const BASE_PUPPETEER_ARGS = ["--no-sandbox", "--disable-setuid-sandbox"];
 
 const toErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : "Unknown error";
+
+const isVercelRuntime = () => Boolean(process.env.VERCEL);
+
+const loadPuppeteer = async (): Promise<PuppeteerModule> => import("puppeteer");
 
 const jsonError = (
   status: number,
@@ -114,10 +120,30 @@ export const Route = createFileRoute("/api/pdf")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        let browser: puppeteer.Browser | null = null;
+        if (isVercelRuntime()) {
+          return jsonError(
+            503,
+            "PDF_LOCAL_DISABLED_ON_VERCEL",
+            "Local PDF export is disabled on Vercel. Use compatibility export or browser print."
+          );
+        }
+
+        let browser: PuppeteerBrowser | null = null;
         const launchErrors: string[] = [];
 
         try {
+          let puppeteer: PuppeteerModule;
+          try {
+            puppeteer = await loadPuppeteer();
+          } catch (error) {
+            return jsonError(
+              500,
+              "PDF_LAUNCH_FAILED",
+              "Failed to load Puppeteer runtime for PDF export.",
+              toErrorMessage(error)
+            );
+          }
+
           let body: PdfRequestPayload;
           try {
             body = (await request.json()) as PdfRequestPayload;

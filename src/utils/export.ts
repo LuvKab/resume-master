@@ -79,6 +79,7 @@ export interface ExportToPdfOptions {
 
 export type PdfExportChannel = "local" | "remote";
 export type PdfExportStrategy = "auto" | "local-only" | "remote-only";
+export const PDF_LOCAL_DISABLED_ON_VERCEL = "PDF_LOCAL_DISABLED_ON_VERCEL";
 
 export interface PdfExportAttempt {
   channel: PdfExportChannel;
@@ -114,6 +115,17 @@ const resolveChannelUrl = (channel: PdfExportChannel) =>
   channel === "local"
     ? PDF_EXPORT_CONFIG.LOCAL_SERVER_URL
     : PDF_EXPORT_CONFIG.REMOTE_SERVER_URL;
+
+export const isVercelLocalPdfDisabled = (
+  result?: ExportToPdfResult | null
+) =>
+  Boolean(
+    result?.attempts.some(
+      (attempt) =>
+        attempt.channel === "local" &&
+        attempt.code === PDF_LOCAL_DISABLED_ON_VERCEL
+    )
+  );
 
 const resolveMargin = (element: HTMLElement, fallback?: number) => {
   const computedPaddingTop = Number.parseFloat(
@@ -242,13 +254,18 @@ export const exportToPdf = async ({
 
         if (!response.ok) {
           const parsedError = await parseErrorPayload(response);
+          const expectedVercelDegrade =
+            channel === "local" &&
+            parsedError.code === PDF_LOCAL_DISABLED_ON_VERCEL;
           attempts.push({
             channel,
             url,
             ok: false,
             status: response.status,
             code: parsedError.code,
-            message: parsedError.message,
+            message: expectedVercelDegrade
+              ? "Local export is disabled on Vercel. Switched to compatibility export."
+              : parsedError.message,
           });
           continue;
         }

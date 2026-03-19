@@ -2,11 +2,12 @@ import { createServer } from "node:http";
 import { createReadStream, existsSync, statSync } from "node:fs";
 import { extname, normalize, resolve } from "node:path";
 import { Readable } from "node:stream";
-import serverEntry from "./dist/server/server.js";
+import { pathToFileURL } from "node:url";
 
 const clientDir = resolve(process.cwd(), "dist/client");
 const port = Number(process.env.PORT || 3000);
 const host = process.env.HOSTNAME || "0.0.0.0";
+let serverEntryPromise;
 
 const MIME_TYPES = {
   ".css": "text/css; charset=utf-8",
@@ -92,10 +93,23 @@ function appendSetCookie(res, value) {
   res.setHeader("set-cookie", [String(existing), value]);
 }
 
-createServer(async (req, res) => {
+function getServerEntry() {
+  if (!serverEntryPromise) {
+    serverEntryPromise = import("./dist/server/server.js").then(
+      (module) => module.default
+    );
+  }
+
+  return serverEntryPromise;
+}
+
+async function handleNodeRequest(req, res) {
   try {
     const hostHeader = req.headers.host || `localhost:${port}`;
-    const protocol = (req.headers["x-forwarded-proto"] || "http").toString().split(",")[0].trim();
+    const protocol = (req.headers["x-forwarded-proto"] || "http")
+      .toString()
+      .split(",")[0]
+      .trim();
     const url = new URL(req.url || "/", `${protocol}://${hostHeader}`);
 
     if (tryServeStatic(req, res, url)) return;
@@ -112,6 +126,7 @@ createServer(async (req, res) => {
       init.duplex = "half";
     }
 
+    const serverEntry = await getServerEntry();
     const request = new Request(url, init);
     const response = await serverEntry.fetch(request);
 
@@ -138,6 +153,24 @@ createServer(async (req, res) => {
     }
     res.end("Internal Server Error");
   }
-}).listen(port, host, () => {
-  console.log(`Server running at http://${host}:${port}`);
-});
+}
+
+function startNodeServer() {
+  createServer((req, res) => {
+    void handleNodeRequest(req, res);
+  }).listen(port, host, () => {
+    console.log(`Server running at http://${host}:${port}`);
+  });
+}
+
+export default async function serverEntryCompatibilityRoute() {
+  return new Response("Not Found", { status: 404 });
+}
+
+const isExecutedDirectly =
+  Boolean(process.argv[1]) &&
+  import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isExecutedDirectly) {
+  startNodeServer();
+}

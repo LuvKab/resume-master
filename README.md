@@ -82,7 +82,38 @@ pnpm start
 
 预期结果：服务可正常启动，页面可访问。
 
-## 6. 常用命令
+## 6. Vercel 部署（SSR + API）
+
+当前仓库已接入 `TanStack Start + Nitro`，可直接部署到 Vercel Node Runtime（非 Edge）。
+
+### 6.1 Vercel 项目设置
+
+- Install Command: `pnpm install`
+- Build Command: `pnpm build`
+- Output Directory: 留空（由 Nitro 产物自动识别）
+- Node.js Version: `20.x`
+
+### 6.2 关键环境变量
+
+```env
+# 远端 PDF 兼容通道（可选，不填使用默认通道）
+VITE_PDF_REMOTE_SERVER_URL=https://api.yijianli.app/generate-pdf
+
+# 可选：服务端托管 AI（不让用户在前端填写 Key）
+VITE_SERVER_MANAGED_AI=true
+DEFAULT_AI_MODEL=openai
+OPENAI_API_KEY=...
+OPENAI_MODEL_ID=...
+OPENAI_API_ENDPOINT=...
+```
+
+### 6.3 Vercel 上 PDF 导出预期行为
+
+1. `/api/pdf` 会返回 `503` 与 `PDF_LOCAL_DISABLED_ON_VERCEL`（预期降级，不是故障）。
+2. 前端会自动继续兼容导出通道；兼容通道失败时可改用浏览器打印导出。
+3. 本地开发或自托管环境仍保留 `/api/pdf` 的本地 Puppeteer 导出能力。
+
+## 7. 常用命令
 
 | 命令 | 作用 |
 | --- | --- |
@@ -92,7 +123,7 @@ pnpm start
 | `pnpm preview` | 预览构建产物 |
 | `pnpm generate:template-snapshots` | 生成模板快照 |
 
-## 7. 常见问题（直接对照处理）
+## 8. 常见问题（直接对照处理）
 
 ### 7.1 端口被占用
 
@@ -125,7 +156,7 @@ pnpm install
 2. Endpoint 是否填对（如 `http://127.0.0.1:11434/v1`）。
 3. API Key 可留空（默认不要求）。
 
-## 8. 可选：服务端托管 AI（不让用户填 Key）
+## 9. 可选：服务端托管 AI（不让用户填 Key）
 
 在部署环境配置：
 
@@ -139,7 +170,7 @@ OPENAI_API_ENDPOINT=...
 
 也支持 `doubao` / `deepseek` / `gemini` 对应变量。
 
-## 9. 项目结构（快速定位）
+## 10. 项目结构（快速定位）
 
 ```text
 src/

@@ -19,9 +19,16 @@ export const DEFAULT_FIELD_ORDER: BasicFieldType[] = [
 
 export const GITHUB_REPO_URL = "https://github.com/LuvKab/resume-master";
 
+const DEFAULT_PDF_REMOTE_SERVER_URL = "https://api.yijianli.app/generate-pdf";
+const remotePdfServerUrl =
+  typeof import.meta.env.VITE_PDF_REMOTE_SERVER_URL === "string" &&
+  import.meta.env.VITE_PDF_REMOTE_SERVER_URL.trim().length > 0
+    ? import.meta.env.VITE_PDF_REMOTE_SERVER_URL.trim()
+    : DEFAULT_PDF_REMOTE_SERVER_URL;
+
 export const PDF_EXPORT_CONFIG = {
   LOCAL_SERVER_URL: "/api/pdf",
-  REMOTE_SERVER_URL: "https://api.yijianli.app/generate-pdf",
+  REMOTE_SERVER_URL: remotePdfServerUrl,
   TIMEOUT: 45000,
   MAX_RETRY: 2,
   MAX_CONTENT_SIZE: 5 * 1024 * 1024

@@ -83,7 +83,38 @@ pnpm start
 
 Expected result: app starts and is reachable.
 
-## 6. Common Commands
+## 6. Deploy on Vercel (SSR + API)
+
+This repository now uses `TanStack Start + Nitro`, so it can be deployed directly on Vercel Node Runtime (not Edge).
+
+### 6.1 Vercel project settings
+
+- Install Command: `pnpm install`
+- Build Command: `pnpm build`
+- Output Directory: leave empty (Nitro output is auto-detected)
+- Node.js Version: `20.x`
+
+### 6.2 Key environment variables
+
+```env
+# Optional: compatibility PDF channel (defaults to built-in URL when omitted)
+VITE_PDF_REMOTE_SERVER_URL=https://api.yijianli.app/generate-pdf
+
+# Optional: server-managed AI mode
+VITE_SERVER_MANAGED_AI=true
+DEFAULT_AI_MODEL=openai
+OPENAI_API_KEY=...
+OPENAI_MODEL_ID=...
+OPENAI_API_ENDPOINT=...
+```
+
+### 6.3 Expected PDF behavior on Vercel
+
+1. `/api/pdf` returns `503` with `PDF_LOCAL_DISABLED_ON_VERCEL` (expected degrade, not an outage).
+2. Frontend export automatically continues with compatibility channel; if that also fails, use browser print fallback.
+3. Local development and self-hosted runtime keep local Puppeteer export via `/api/pdf`.
+
+## 7. Common Commands
 
 | Command | Purpose |
 | --- | --- |
@@ -93,7 +124,7 @@ Expected result: app starts and is reachable.
 | `pnpm preview` | Preview build output |
 | `pnpm generate:template-snapshots` | Regenerate template snapshots |
 
-## 7. Troubleshooting
+## 8. Troubleshooting
 
 ### 7.1 Port already in use
 
@@ -126,7 +157,7 @@ Check in order:
 2. Endpoint is correct (for example `http://127.0.0.1:11434/v1`).
 3. API key can be left empty by default.
 
-## 8. Optional: Server-managed AI
+## 9. Optional: Server-managed AI
 
 If you do not want users to input keys in UI:
 
@@ -140,7 +171,7 @@ OPENAI_API_ENDPOINT=...
 
 `doubao` / `deepseek` / `gemini` env variants are also supported.
 
-## 9. Project Structure
+## 10. Project Structure
 
 ```text
 src/
