@@ -20,6 +20,7 @@
     "@heroui/react": "^2.8.8",
     "@heroui/theme": "^2.4.26",
     "@internationalized/date": "^3.10.1",
+    "@lobehub/icons": "^5.0.1",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.2",
     "@radix-ui/react-dialog": "^1.1.2",

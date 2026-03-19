@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { useTranslations } from "@/i18n/compat/client";
 import {
   Download,
@@ -10,8 +10,21 @@ import {
 import { toast } from "sonner";
 import { useResumeStore } from "@/store/useResumeStore";
 import { Button } from "@/components/ui/button";
-import { exportToPdf } from "@/utils/export";
+import {
+  exportToPdf,
+  type ExportToPdfResult,
+  type PdfExportChannel,
+  type PdfExportStrategy
+} from "@/utils/export";
 import { exportResumeToBrowserPrint } from "@/utils/print";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,22 +35,38 @@ import {
 const PdfExport = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingJson, setIsExportingJson] = useState(false);
+  const [exportFailureOpen, setExportFailureOpen] = useState(false);
+  const [exportFailureResult, setExportFailureResult] = useState<ExportToPdfResult | null>(null);
   const { activeResume } = useResumeStore();
   const { globalSettings = {}, title } = activeResume || {};
   const t = useTranslations("pdfExport");
-  const printFrameRef = useRef<HTMLIFrameElement>(null);
+  const tPreview = useTranslations("previewDock");
 
-  const handleExport = async () => {
-    await exportToPdf({
+  const runPdfExport = async (strategy: PdfExportStrategy = "auto") => {
+    const result = await exportToPdf({
       elementId: "resume-preview",
       title: title || "resume",
-      pagePadding: globalSettings?.pagePadding || 0,
       fontFamily: globalSettings?.fontFamily,
       onStart: () => setIsExporting(true),
       onEnd: () => setIsExporting(false),
-      successMessage: t("toast.success"),
-      errorMessage: t("toast.error")
+      strategy,
     });
+
+    if (result.success) {
+      toast.success(t("toast.success"));
+      setExportFailureOpen(false);
+      setExportFailureResult(null);
+      return true;
+    }
+
+    toast.error(t("toast.error"));
+    setExportFailureResult(result);
+    setExportFailureOpen(true);
+    return false;
+  };
+
+  const handleExport = async () => {
+    await runPdfExport("auto");
   };
 
   const handleJsonExport = () => {
@@ -69,18 +98,23 @@ const PdfExport = () => {
     const resumeContent = document.getElementById("resume-preview");
     if (!resumeContent) {
       console.error("Resume content not found");
+      toast.error(tPreview("exportFailure.previewMissing"));
       return;
     }
 
-    const pagePadding = globalSettings?.pagePadding || 0;
     await exportResumeToBrowserPrint(
       resumeContent,
-      pagePadding,
+      undefined,
       globalSettings?.fontFamily
     );
   };
 
   const isLoading = isExporting || isExportingJson;
+  const exportFailedAttempts = exportFailureResult?.attempts.filter((attempt) => !attempt.ok) || [];
+  const channelLabel = (channel: PdfExportChannel) =>
+    channel === "local"
+      ? tPreview("exportFailure.localChannel")
+      : tPreview("exportFailure.remoteChannel");
   const loadingText = isExporting
     ? t("button.exporting")
     : isExportingJson
@@ -125,6 +159,55 @@ const PdfExport = () => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <Dialog open={exportFailureOpen} onOpenChange={setExportFailureOpen}>
+        <DialogContent className="sm:max-w-[560px]">
+          <DialogHeader>
+            <DialogTitle>{tPreview("exportFailure.title")}</DialogTitle>
+            <DialogDescription>{tPreview("exportFailure.description")}</DialogDescription>
+          </DialogHeader>
+          {exportFailedAttempts.length > 0 && (
+            <div className="rounded-md border border-border/80 bg-accent/20 px-3 py-2 space-y-2">
+              {exportFailedAttempts.map((attempt, index) => (
+                <div key={`${attempt.channel}-${index}`} className="text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">{channelLabel(attempt.channel)}:</span>{" "}
+                  {attempt.message}
+                </div>
+              ))}
+            </div>
+          )}
+          <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setExportFailureOpen(false)}
+              disabled={isExporting}
+            >
+              {tPreview("exportFailure.cancel")}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => void runPdfExport("local-only")}
+              disabled={isExporting}
+            >
+              {tPreview("exportFailure.retryLocal")}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => void runPdfExport("remote-only")}
+              disabled={isExporting}
+            >
+              {tPreview("exportFailure.retryRemote")}
+            </Button>
+            <Button
+              onClick={() => {
+                setExportFailureOpen(false);
+                void handlePrint();
+              }}
+            >
+              {tPreview("exportFailure.usePrint")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

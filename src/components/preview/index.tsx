@@ -5,9 +5,15 @@ import { toast } from "sonner";
 import { DEFAULT_TEMPLATES } from "@/config";
 import { cn } from "@/lib/utils";
 import { useResumeStore } from "@/store/useResumeStore";
-import { useAutoOnePage } from "@/hooks/useAutoOnePage";
+import {
+  useAutoOnePage,
+  AUTO_ONE_PAGE_MAX_SCALE,
+  AUTO_ONE_PAGE_MIN_SCALE,
+} from "@/hooks/useAutoOnePage";
 import { useTranslations } from "@/i18n/compat/client";
+import { A4_HEIGHT_PX, AUTO_ONE_PAGE_MIN_MARGIN_PX } from "@/lib/a4";
 import { normalizeFontFamily } from "@/utils/fonts";
+import type { GlobalSettings, ResumeData } from "@/types/resume";
 import ResumeTemplateComponent from "../templates";
 
 interface PreviewPanelProps {
@@ -18,6 +24,74 @@ interface PreviewPanelProps {
   toggleEditPanel: () => void;
   togglePreviewPanel: () => void;
 }
+
+const HEIGHT_EPSILON_PX = 1;
+const SCALE_EPSILON = 0.01;
+const MAX_AUTO_FEEDBACK_ROUNDS = 4;
+
+const clampScale = (value: number) =>
+  Math.max(AUTO_ONE_PAGE_MIN_SCALE, Math.min(AUTO_ONE_PAGE_MAX_SCALE, value));
+
+const scaleGlobalSettings = (
+  settings: GlobalSettings | undefined,
+  factor: number
+): GlobalSettings | undefined => {
+  if (!settings || Math.abs(factor - 1) < 0.001) {
+    return settings;
+  }
+
+  const scaleNumber = (value: number | undefined, fallback: number) =>
+    (value ?? fallback) * factor;
+
+  const sectionHeights = settings.sectionHeights
+    ? Object.fromEntries(
+      Object.entries(settings.sectionHeights).map(([key, value]) => [
+        key,
+        value * factor,
+      ])
+    )
+    : settings.sectionHeights;
+
+  return {
+    ...settings,
+    baseFontSize: scaleNumber(settings.baseFontSize, 16),
+    pagePadding: settings.pagePadding,
+    headerSize: scaleNumber(settings.headerSize, 18),
+    subheaderSize: scaleNumber(settings.subheaderSize, 16),
+    sectionSpacing: scaleNumber(settings.sectionSpacing, 10),
+    paragraphSpacing: scaleNumber(settings.paragraphSpacing, 12),
+    sectionHeights,
+  };
+};
+
+const scaleResumeForPreview = (
+  resume: ResumeData,
+  factor: number
+): ResumeData => {
+  if (Math.abs(factor - 1) < 0.001) {
+    return resume;
+  }
+
+  const photoConfig = resume.basic?.photoConfig;
+  const scaledPhotoConfig = photoConfig
+    ? {
+      ...photoConfig,
+      width: photoConfig.width * factor,
+      height: photoConfig.height * factor,
+      customBorderRadius: photoConfig.customBorderRadius * factor,
+    }
+    : photoConfig;
+
+  return {
+    ...resume,
+    globalSettings:
+      scaleGlobalSettings(resume.globalSettings, factor) ?? resume.globalSettings,
+    basic: {
+      ...resume.basic,
+      photoConfig: scaledPhotoConfig,
+    },
+  };
+};
 
 const PageBreakLine = React.memo(
   ({
@@ -78,106 +152,280 @@ const PreviewPanel = React.forwardRef<HTMLDivElement, PreviewPanelProps>(
 
     const startRef = useRef<HTMLDivElement>(null);
     const previewRef = useRef<HTMLDivElement>(null);
-    const internalResumeContentRef = useRef<HTMLDivElement>(null);
-    const resumeContentRef = (ref as React.MutableRefObject<HTMLDivElement>) || internalResumeContentRef;
-    const [contentHeight, setContentHeight] = useState(0);
+    const measureContentRef = useRef<HTMLDivElement>(null);
+    const internalVisibleContentRef = useRef<HTMLDivElement>(null);
+    const visibleContentRef =
+      (ref as React.MutableRefObject<HTMLDivElement>) || internalVisibleContentRef;
+    const [baselineContentHeight, setBaselineContentHeight] = useState(0);
+    const [displayContentHeight, setDisplayContentHeight] = useState(0);
+    const [stableScaleFactor, setStableScaleFactor] = useState(1);
+    const [feedbackRounds, setFeedbackRounds] = useState(0);
+    const stableScaleRef = useRef(1);
+    const measuredDisplayScaleRef = useRef<number>(Number.NaN);
 
-    const updateContentHeight = () => {
-      if (resumeContentRef.current) {
-        const height = resumeContentRef.current.scrollHeight;
-        if (height > 0) {
-          setContentHeight((prev) => {
-            if (Math.abs(prev - height) <= 1) return prev;
-            return height;
-          });
-        }
+    useEffect(() => {
+      stableScaleRef.current = stableScaleFactor;
+    }, [stableScaleFactor]);
+
+    const updateMeasuredHeights = () => {
+      const nextBaselineHeight = measureContentRef.current?.scrollHeight ?? 0;
+      if (nextBaselineHeight > 0) {
+        setBaselineContentHeight((prev) => {
+          if (Math.abs(prev - nextBaselineHeight) <= HEIGHT_EPSILON_PX) return prev;
+          return nextBaselineHeight;
+        });
+      }
+
+      const nextDisplayHeight = visibleContentRef.current?.scrollHeight ?? 0;
+      if (nextDisplayHeight > 0) {
+        measuredDisplayScaleRef.current = stableScaleRef.current;
+        setDisplayContentHeight((prev) => {
+          if (Math.abs(prev - nextDisplayHeight) <= HEIGHT_EPSILON_PX) return prev;
+          return nextDisplayHeight;
+        });
       }
     };
 
     useEffect(() => {
       const debouncedUpdate = throttle(() => {
         requestAnimationFrame(() => {
-          updateContentHeight();
+          updateMeasuredHeights();
         });
       }, 100);
 
-      const observer = new MutationObserver(debouncedUpdate);
+      const mutationObserver = new MutationObserver(debouncedUpdate);
+      const resizeObserver = new ResizeObserver(debouncedUpdate);
 
-      if (resumeContentRef.current) {
-        observer.observe(resumeContentRef.current, {
+      const observedElements = [measureContentRef.current, visibleContentRef.current].filter(
+        Boolean
+      ) as HTMLElement[];
+
+      observedElements.forEach((element) => {
+        mutationObserver.observe(element, {
           childList: true,
           subtree: true,
           attributes: true,
           characterData: true,
         });
+        resizeObserver.observe(element);
+      });
 
-        updateContentHeight();
-      }
-
-      const resizeObserver = new ResizeObserver(debouncedUpdate);
-
-      if (resumeContentRef.current) {
-        resizeObserver.observe(resumeContentRef.current);
-      }
+      debouncedUpdate();
 
       return () => {
-        observer.disconnect();
+        mutationObserver.disconnect();
         resizeObserver.disconnect();
+        debouncedUpdate.cancel();
       };
-    }, [resumeContentRef]);
+    }, [activeResume?.id, visibleContentRef]);
 
     useEffect(() => {
       if (activeResume) {
-        const timer = setTimeout(updateContentHeight, 300);
+        const timer = setTimeout(updateMeasuredHeights, 300);
         return () => clearTimeout(timer);
       }
     }, [activeResume]);
 
-    const pagePadding = activeResume?.globalSettings?.pagePadding || 0;
     const autoOnePageEnabled = activeResume?.globalSettings?.autoOnePage || false;
+    const basePagePadding = activeResume?.globalSettings?.pagePadding || 0;
+    const onePageBoundaryPadding = autoOnePageEnabled
+      ? Math.max(basePagePadding, AUTO_ONE_PAGE_MIN_MARGIN_PX)
+      : basePagePadding;
 
     const { scaleFactor, isScaled, cannotFit } = useAutoOnePage({
-      contentHeight,
-      pagePadding,
+      contentHeight: baselineContentHeight,
+      pagePadding: onePageBoundaryPadding,
       enabled: autoOnePageEnabled,
     });
 
     useEffect(() => {
-      if (cannotFit) {
+      if (!autoOnePageEnabled) {
+        setStableScaleFactor(1);
+        setFeedbackRounds(0);
+        return;
+      }
+
+      const baseScale = isScaled ? scaleFactor : 1;
+      setStableScaleFactor((prev) =>
+        Math.abs(prev - baseScale) > SCALE_EPSILON ? baseScale : prev
+      );
+      setFeedbackRounds(0);
+      measuredDisplayScaleRef.current = Number.NaN;
+    }, [
+      autoOnePageEnabled,
+      isScaled,
+      scaleFactor,
+      baselineContentHeight,
+      onePageBoundaryPadding,
+      activeResume?.id,
+    ]);
+
+    const appliedScaleFactor =
+      autoOnePageEnabled ? stableScaleFactor : 1;
+
+    const shouldUseSettingsScale =
+      autoOnePageEnabled && Math.abs(appliedScaleFactor - 1) > 0.001;
+
+    const previewResume = useMemo<ResumeData | null | undefined>(() => {
+      if (!activeResume) {
+        return activeResume;
+      }
+
+      if (!shouldUseSettingsScale) {
+        return activeResume;
+      }
+
+      return scaleResumeForPreview(activeResume, appliedScaleFactor);
+    }, [activeResume, shouldUseSettingsScale, appliedScaleFactor]);
+
+    const displayPagePadding = autoOnePageEnabled
+      ? onePageBoundaryPadding
+      : (previewResume?.globalSettings?.pagePadding ?? basePagePadding);
+
+    const availableContentPerPage = useMemo(
+      () => A4_HEIGHT_PX - 2 * displayPagePadding,
+      [displayPagePadding]
+    );
+
+    const displayActualContentHeight = useMemo(() => {
+      if (displayContentHeight <= 0) {
+        return 0;
+      }
+      // scrollHeight 包含 #resume-preview 上下 padding
+      return Math.max(0, displayContentHeight - 2 * displayPagePadding);
+    }, [displayContentHeight, displayPagePadding]);
+
+    useEffect(() => {
+      if (!autoOnePageEnabled) {
+        return;
+      }
+
+      if (
+        availableContentPerPage <= 0 ||
+        displayActualContentHeight <= 0 ||
+        feedbackRounds >= MAX_AUTO_FEEDBACK_ROUNDS
+      ) {
+        return;
+      }
+
+      const measuredScale = measuredDisplayScaleRef.current;
+      if (!Number.isFinite(measuredScale)) {
+        return;
+      }
+
+      if (Math.abs(measuredScale - stableScaleFactor) > SCALE_EPSILON) {
+        return;
+      }
+
+      const heightDiff = displayActualContentHeight - availableContentPerPage;
+      if (Math.abs(heightDiff) <= HEIGHT_EPSILON_PX) {
+        return;
+      }
+
+      const nextScale = clampScale(
+        stableScaleFactor * (availableContentPerPage / displayActualContentHeight)
+      );
+      if (Math.abs(nextScale - stableScaleFactor) <= SCALE_EPSILON) {
+        return;
+      }
+
+      const frameId = requestAnimationFrame(() => {
+        setStableScaleFactor(nextScale);
+        setFeedbackRounds((prev) => prev + 1);
+        measuredDisplayScaleRef.current = Number.NaN;
+      });
+
+      return () => cancelAnimationFrame(frameId);
+    }, [
+      autoOnePageEnabled,
+      availableContentPerPage,
+      displayActualContentHeight,
+      stableScaleFactor,
+      feedbackRounds,
+    ]);
+
+    const fallbackCannotFit = useMemo(() => {
+      if (
+        !autoOnePageEnabled ||
+        availableContentPerPage <= 0 ||
+        displayActualContentHeight <= 0
+      ) {
+        return false;
+      }
+      return (
+        stableScaleFactor <= AUTO_ONE_PAGE_MIN_SCALE + 0.001 &&
+        displayActualContentHeight > availableContentPerPage + HEIGHT_EPSILON_PX
+      );
+    }, [
+      autoOnePageEnabled,
+      availableContentPerPage,
+      displayActualContentHeight,
+      stableScaleFactor,
+    ]);
+
+    const finalCannotFit = cannotFit || fallbackCannotFit;
+
+    useEffect(() => {
+      if (autoOnePageEnabled && finalCannotFit) {
         toast.warning(t("autoOnePage.cannotFit"), {
           duration: 4000,
         });
       }
-    }, [cannotFit, t]);
+    }, [autoOnePageEnabled, finalCannotFit, t]);
 
     const { contentPerPagePx, pageBreakCount } = useMemo(() => {
-      const MM_TO_PX = 3.78;
-      const A4_HEIGHT_PX = 297 * MM_TO_PX;
-
       // 与 Puppeteer PDF 导出一致：margin: pagePadding px（上下各一份）
       // 每页可用内容高度 = A4 总高度 - 上 margin - 下 margin
-      const baseContentPerPage = A4_HEIGHT_PX - 2 * pagePadding;
+      if (availableContentPerPage <= 0) {
+        return { contentPerPagePx: 0, pageBreakCount: 0 };
+      }
 
       // 一页纸模式启用且内容能完美一页时，才隐藏分页线
       // cannotFit 时内容仍超出一页，需要保留分页线
-      if ((isScaled && !cannotFit) || contentHeight <= 0) {
-        return { contentPerPagePx: baseContentPerPage, pageBreakCount: 0 };
+      if ((autoOnePageEnabled && !finalCannotFit) || displayActualContentHeight <= 0) {
+        return { contentPerPagePx: availableContentPerPage, pageBreakCount: 0 };
       }
 
-      // 缩放时，在容器本地坐标系下每页能容纳更多内容
-      // 因为视觉上 effectiveContentPerPage * scaleFactor = baseContentPerPage
-      const effectiveContentPerPage = isScaled
-        ? baseContentPerPage / scaleFactor
-        : baseContentPerPage;
-
-      // contentHeight 包含 #resume-preview 的 padding（上+下）
-      // 实际内容高度 = contentHeight - 2 * pagePadding
-      const actualContentHeight = contentHeight - 2 * pagePadding;
-      const pageCount = Math.max(1, Math.ceil(actualContentHeight / effectiveContentPerPage));
+      const pageCount = Math.max(
+        1,
+        Math.ceil(displayActualContentHeight / availableContentPerPage)
+      );
       const pageBreakCount = Math.max(0, pageCount - 1);
 
-      return { contentPerPagePx: effectiveContentPerPage, pageBreakCount };
-    }, [contentHeight, pagePadding, isScaled, cannotFit, scaleFactor]);
+      return { contentPerPagePx: availableContentPerPage, pageBreakCount };
+    }, [
+      autoOnePageEnabled,
+      finalCannotFit,
+      displayActualContentHeight,
+      availableContentPerPage,
+    ]);
+
+    const onePageUsage = useMemo(() => {
+      if (
+        !autoOnePageEnabled ||
+        availableContentPerPage <= 0 ||
+        displayActualContentHeight <= 0
+      ) {
+        return null;
+      }
+
+      const rawUsage = Math.round(
+        (displayActualContentHeight / availableContentPerPage) * 100
+      );
+
+      if (!finalCannotFit) {
+        return Math.max(0, Math.min(100, rawUsage));
+      }
+
+      return Math.max(0, rawUsage);
+    }, [
+      autoOnePageEnabled,
+      availableContentPerPage,
+      displayActualContentHeight,
+      finalCannotFit,
+    ]);
+
+    const lockA4Canvas = autoOnePageEnabled && !finalCannotFit;
 
     if (!activeResume) return null;
 
@@ -205,30 +453,55 @@ const PreviewPanel = React.forwardRef<HTMLDivElement, PreviewPanelProps>(
           fontFamily: selectedFontFamily,
         }}
       >
+        <div
+          className="absolute top-0 -left-[99999px] w-[210mm] pointer-events-none opacity-0"
+          aria-hidden="true"
+        >
+          <div
+            ref={measureContentRef}
+            style={{
+              fontFamily: selectedFontFamily,
+              padding: `${onePageBoundaryPadding}px`,
+            }}
+            className="relative"
+          >
+            <ResumeTemplateComponent data={activeResume} template={template} />
+          </div>
+        </div>
         <div className="py-4 ml-4 px-4 min-h-screen flex justify-center scale-[58%] origin-top md:scale-90 md:origin-top-left">
           <div
             ref={startRef}
             className={cn(
-              "w-[210mm] min-w-[210mm] min-h-[297mm]",
+              "w-[210mm] min-w-[210mm]",
               "bg-white",
               "shadow-lg",
-              "relative mx-auto"
+              "relative mx-auto",
+              lockA4Canvas ? "h-[297mm] overflow-hidden" : "min-h-[297mm]"
             )}
           >
+            {autoOnePageEnabled && onePageUsage !== null && (
+              <div
+                className={cn(
+                  "absolute top-3 right-3 z-10 pointer-events-none rounded-full px-3 py-1 text-[11px] font-medium shadow-sm",
+                  finalCannotFit
+                    ? "bg-red-50 text-red-700 border border-red-200"
+                    : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                )}
+              >
+                {finalCannotFit
+                  ? t("autoOnePage.statusCannotFit")
+                  : t("autoOnePage.statusFitted")}
+                {" · "}
+                {t("autoOnePage.usage", { ratio: onePageUsage })}
+              </div>
+            )}
             <div
-              ref={resumeContentRef}
+              ref={visibleContentRef}
               id="resume-preview"
               onClickCapture={handlePreviewClickCapture}
               style={{
                 fontFamily: selectedFontFamily,
-                padding: `${activeResume.globalSettings?.pagePadding}px`,
-                ...(isScaled
-                  ? {
-                    transform: `scale(${scaleFactor})`,
-                    transformOrigin: "top left",
-                    width: `${100 / scaleFactor}%`,
-                  }
-                  : {}),
+                padding: `${displayPagePadding}px`,
               }}
               className="relative"
             >
@@ -271,25 +544,28 @@ const PreviewPanel = React.forwardRef<HTMLDivElement, PreviewPanelProps>(
                 }
               }
             `}</style>
-              <ResumeTemplateComponent data={activeResume} template={template} />
-              {contentHeight > 0 && (
+              <ResumeTemplateComponent
+                data={(previewResume || activeResume) as ResumeData}
+                template={template}
+              />
+              {displayContentHeight > 0 && (
                 <>
-                  <div key={`page-breaks-container-${contentHeight}`}>
+                  <div key={`page-breaks-container-${displayContentHeight}`}>
                     {Array.from(
                       { length: Math.min(pageBreakCount, 20) },
                       (_, i) => {
                         const pageNumber = i + 1;
 
                         const pageLinePosition =
-                          pagePadding + pageNumber * contentPerPagePx;
+                          displayPagePadding + pageNumber * contentPerPagePx;
 
-                        if (pageLinePosition <= contentHeight) {
+                        if (pageLinePosition <= displayContentHeight) {
                           return (
                             <PageBreakLine
                               key={`page-break-${pageNumber}`}
                               pageNumber={pageNumber}
                               contentPerPagePx={contentPerPagePx}
-                              pagePadding={pagePadding}
+                              pagePadding={displayPagePadding}
                             />
                           );
                         }

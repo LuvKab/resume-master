@@ -56,7 +56,7 @@ const CreativeTemplate: React.FC<CreativeTemplateProps> = ({ data, template }) =
     };
 
     return (
-        <div className="flex flex-col w-full min-h-screen" style={{ backgroundColor: colorScheme.background, color: colorScheme.text }}>
+        <div className="flex flex-col w-full" style={{ backgroundColor: colorScheme.background, color: colorScheme.text }}>
             {/* Top colored header block */}
             {basicSection && (
                 <div className="w-full relative py-8 px-4 rounded-b-3xl pr-0" style={{ backgroundColor: data.globalSettings.themeColor, color: "#ffffff" }}>

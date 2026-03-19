@@ -26,6 +26,7 @@ const SectionTitle = ({ type, title, globalSettings, showTitle = true, variant =
     if (!showTitle) return null;
 
     const isSidebar = variant === "sidebar";
+    const sidebarMarginBottom = Math.max(8, globalSettings?.paragraphSpacing || 12);
 
     return (
         <h3
@@ -38,7 +39,7 @@ const SectionTitle = ({ type, title, globalSettings, showTitle = true, variant =
                 fontWeight: "bold",
                 color: isSidebar ? "#ffffff" : themeColor,
                 borderColor: isSidebar ? "rgba(255,255,255,0.2)" : themeColor,
-                marginBottom: isSidebar ? "12px" : `${globalSettings?.paragraphSpacing}px`,
+                marginBottom: isSidebar ? `${sidebarMarginBottom}px` : `${globalSettings?.paragraphSpacing}px`,
             }}
         >
             {renderTitle}

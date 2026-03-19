@@ -2,7 +2,7 @@ import { getFontFaceCss, normalizeFontFamily } from "@/utils/fonts";
 
 export const exportResumeToBrowserPrint = async (
   resumeContent: HTMLElement,
-  pagePadding: number,
+  pagePadding?: number,
   fontFamily?: string
 ) => {
   const printFrame = document.createElement("iframe");
@@ -24,6 +24,13 @@ export const exportResumeToBrowserPrint = async (
 
   try {
     iframeWindow.document.open();
+
+    const computedPaddingTop = Number.parseFloat(
+      window.getComputedStyle(resumeContent).paddingTop
+    );
+    const resolvedPagePadding = Number.isFinite(computedPaddingTop)
+      ? computedPaddingTop
+      : Math.max(0, pagePadding || 0);
 
     const clonedContent = resumeContent.cloneNode(true) as HTMLElement;
     const selectedFontFamily = normalizeFontFamily(fontFamily);
@@ -75,7 +82,7 @@ export const exportResumeToBrowserPrint = async (
 
             #resume-preview {
               margin: 0 !important;
-              padding: ${pagePadding}px !important;
+              padding: ${resolvedPagePadding}px !important;
               -webkit-box-decoration-break: clone;
               box-decoration-break: clone;
               font-family: ${selectedFontFamily} !important;
@@ -100,6 +107,12 @@ export const exportResumeToBrowserPrint = async (
             }
             
             .page-break-line {
+              display: none;
+            }
+            .a4-boundary-line {
+              display: none;
+            }
+            .a4-content-boundary {
               display: none;
             }
 

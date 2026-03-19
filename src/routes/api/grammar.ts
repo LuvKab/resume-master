@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AIModelType, AI_MODEL_CONFIGS } from "@/config/ai";
+import {
+  AIModelType,
+  AI_MODEL_CONFIGS,
+  resolveAIProviderConfig,
+} from "@/config/ai";
 import { formatGeminiErrorMessage, getGeminiModelInstance } from "@/lib/server/gemini";
 
 export const Route = createFileRoute("/api/grammar")({
@@ -20,14 +24,17 @@ export const Route = createFileRoute("/api/grammar")({
             content: string;
             modelType: AIModelType;
             apiEndpoint?: string;
-            providerPresetId?: string;
-            apiKeyOptional?: boolean;
           };
 
           const modelConfig = AI_MODEL_CONFIGS[modelType as AIModelType];
           if (!modelConfig) {
             throw new Error("Invalid model type");
           }
+          const resolvedConfig = resolveAIProviderConfig(modelType, {
+            apiKey,
+            apiEndpoint,
+            modelId: model,
+          });
 
           const systemPrompt = `你是一个专业的中文简历校对助手。你的任务是**仅**找出简历中的**错别字**和**标点符号错误**。
 
@@ -60,9 +67,10 @@ export const Route = createFileRoute("/api/grammar")({
             再次强调：**只找错别字和标点错误，不要做任何润色！**`;
 
           if (modelType === "gemini") {
-            const geminiModel = model || "gemini-flash-latest";
+            const geminiModel =
+              resolvedConfig.model || modelConfig.defaultModel || "gemini-flash-latest";
             const modelInstance = getGeminiModelInstance({
-              apiKey,
+              apiKey: resolvedConfig.apiKey,
               model: geminiModel,
               systemInstruction: systemPrompt,
               generationConfig: {
@@ -85,11 +93,13 @@ export const Route = createFileRoute("/api/grammar")({
             });
           }
 
-          const response = await fetch(modelConfig.url(apiEndpoint), {
+          const response = await fetch(modelConfig.url(resolvedConfig.apiEndpoint), {
             method: "POST",
-            headers: modelConfig.headers(apiKey || ""),
+            headers: modelConfig.headers(resolvedConfig.apiKey || ""),
             body: JSON.stringify({
-              model: modelConfig.requiresModelId ? model : modelConfig.defaultModel,
+              model: modelConfig.requiresModelId
+                ? resolvedConfig.model || modelConfig.defaultModel
+                : modelConfig.defaultModel,
               response_format: {
                 type: "json_object"
               },

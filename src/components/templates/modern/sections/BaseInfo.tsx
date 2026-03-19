@@ -50,6 +50,8 @@ const BaseInfo = ({ basic = {} as BasicInfo, globalSettings, template }: BaseInf
 
     const nameField = basic.fieldOrder?.find((f) => f.key === "name") || { key: "name", visible: true };
     const titleField = basic.fieldOrder?.find((f) => f.key === "title") || { key: "title", visible: true };
+    const nameFontSize = ((globalSettings?.headerSize || 18) / 18) * 30;
+    const titleFontSize = ((globalSettings?.subheaderSize || 16) / 16) * 18;
 
     const PhotoComponent = basic.photo && basic.photoConfig?.visible && (
         <motion.div layout="position">
@@ -66,10 +68,10 @@ const BaseInfo = ({ basic = {} as BasicInfo, globalSettings, template }: BaseInf
                     {PhotoComponent}
                     <div className="flex flex-col text-center min-w-0" style={{ color: "#fff" }}>
                         {nameField.visible !== false && basic[nameField.key] && (
-                            <motion.h1 layout="position" className="font-bold whitespace-pre-wrap break-words" style={{ fontSize: "30px", color: "#fff" }}>{basic[nameField.key] as string}</motion.h1>
+                            <motion.h1 layout="position" className="font-bold whitespace-pre-wrap break-words" style={{ fontSize: `${nameFontSize}px`, color: "#fff" }}>{basic[nameField.key] as string}</motion.h1>
                         )}
                         {titleField.visible !== false && basic[titleField.key] && (
-                            <motion.h2 layout="position" className="whitespace-pre-wrap break-words" style={{ fontSize: "18px", color: "#fff" }}>{basic[titleField.key] as string}</motion.h2>
+                            <motion.h2 layout="position" className="whitespace-pre-wrap break-words" style={{ fontSize: `${titleFontSize}px`, color: "#fff" }}>{basic[titleField.key] as string}</motion.h2>
                         )}
                     </div>
                 </div>

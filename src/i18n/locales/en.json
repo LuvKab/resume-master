@@ -187,36 +187,67 @@
         "currentModel": "Current Model",
         "selectModel": "Select Model",
         "getApiKey": "Get API Key",
+        "common": {
+          "apiEndpoint": "Base URL (API Endpoint)",
+          "apiEndpointPlaceholder": "Example: https://openai.example.org/v1",
+          "modelId": "Model ID",
+          "modelIdPlaceholder": "Enter model ID",
+          "apiKeyOptionalHint": "Local runtimes allow empty API key; no Authorization header will be sent when empty."
+        },
         "doubao": {
           "title": "Doubao",
           "description": "Get API key from Volcengine",
-          "apiKey": "Doubao API Key",
-          "modelId": "Model ID"
+          "apiKey": "API Key"
         },
         "deepseek": {
           "title": "DeepSeek",
           "description": "Get API key from DeepSeek Platform",
-          "apiKey": "DeepSeek API Key"
+          "apiKey": "API Key"
         },
         "openai": {
-          "title": "OpenAI Compatible",
-          "description": "Supports official APIs, relay gateways, and local runtimes (Ollama / LM Studio)",
-          "apiKey": "API Key",
-          "modelId": "Model ID",
-          "apiEndpoint": "API Endpoint, example: https://openai.example.org/v1",
-          "providerPreset": "Provider Preset",
-          "applyRecommended": "Apply Recommended Values",
-          "recommendedEndpoint": "Recommended Endpoint",
-          "recommendedModel": "Recommended Model",
-          "notProvided": "Not provided",
-          "apiKeyOptional": "API Key Optional",
-          "apiKeyOptionalDescription": "Enable this for local or unauthenticated gateways; API key can be empty when enabled"
+          "title": "OpenAI",
+          "description": "Official OpenAI API",
+          "apiKey": "API Key"
         },
         "gemini": {
           "title": "Gemini",
-          "description": "Supports polish, grammar check, and PDF image resume import. Recommended model: gemini-flash-latest",
-          "apiKey": "Gemini API Key",
-          "modelId": "Gemini Model ID"
+          "description": "Google Gemini API (polish, grammar check, and PDF image resume import)",
+          "apiKey": "Gemini API Key"
+        },
+        "qwen": {
+          "title": "Qwen",
+          "description": "Alibaba DashScope OpenAI-compatible endpoint",
+          "apiKey": "API Key"
+        },
+        "zhipu": {
+          "title": "Zhipu GLM",
+          "description": "Zhipu AI OpenAI-compatible endpoint",
+          "apiKey": "API Key"
+        },
+        "kimi": {
+          "title": "Kimi",
+          "description": "Moonshot OpenAI-compatible endpoint",
+          "apiKey": "API Key"
+        },
+        "siliconflow": {
+          "title": "SiliconFlow",
+          "description": "SiliconFlow OpenAI-compatible endpoint",
+          "apiKey": "API Key"
+        },
+        "ollama": {
+          "title": "Ollama (Local)",
+          "description": "Local Ollama runtime",
+          "apiKey": "API Key (Optional)"
+        },
+        "lmstudio": {
+          "title": "LM Studio (Local)",
+          "description": "Local LM Studio OpenAI-compatible runtime",
+          "apiKey": "API Key (Optional)"
+        },
+        "customProxy": {
+          "title": "Custom Proxy",
+          "description": "Any OpenAI-compatible relay or private gateway",
+          "apiKey": "API Key"
         }
       }
     },
@@ -310,7 +341,22 @@
       "tooltip": "Auto Fit One Page",
       "enabled": "One page mode enabled",
       "disabled": "One page mode disabled",
-      "cannotFit": "Too much content. Optimized as much as possible but cannot fit on one page. Try simplifying the content or adjusting margins and font size in the sidebar."
+      "cannotFit": "Too much content. Optimized as much as possible but cannot fit on one page. Try simplifying the content or adjusting margins and font size in the sidebar.",
+      "a4Boundary": "A4 one-page boundary",
+      "statusFitted": "Fitted to A4 single page",
+      "statusCannotFit": "A4 reached minimum scale",
+      "usage": "Content usage {ratio}%"
+    },
+    "exportFailure": {
+      "title": "PDF export failed",
+      "description": "This export did not complete. You can retry a channel or switch to browser print export.",
+      "localChannel": "Local export channel",
+      "remoteChannel": "Compatibility export channel",
+      "retryLocal": "Retry local export",
+      "retryRemote": "Retry compatibility channel",
+      "usePrint": "Use browser print",
+      "cancel": "Cancel",
+      "previewMissing": "Resume preview area not found"
     }
   },
   "workbench": {
@@ -345,6 +391,12 @@
           "misans": "MiSans",
           "notosanssc": "Noto Sans SC",
           "sourcehanserifsc": "Source Han Serif SC",
+          "systemui": "System Sans",
+          "songti": "Songti / SimSun",
+          "kaiti": "KaiTi",
+          "fangsong": "FangSong",
+          "georgia": "Georgia",
+          "arial": "Arial",
           "note": "MiSans is used under its free commercial license. Keep MiSans attribution when distributing this project."
         },
         "lineHeight": {

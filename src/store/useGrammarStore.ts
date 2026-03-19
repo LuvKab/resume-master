@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { toast } from "sonner";
 import Mark from "mark.js";
 import { useAIConfigStore } from "@/store/useAIConfigStore";
-import { AI_MODEL_CONFIGS } from "@/config/ai";
+import { AI_MODEL_CONFIGS, resolveAIProviderConfig } from "@/config/ai";
 import { cn } from "@/lib/utils";
 
 export interface GrammarError {
@@ -92,36 +92,14 @@ export const useGrammarStore = create<GrammarStore>((set, get) => ({
   checkGrammar: async (text: string) => {
     const {
       selectedModel,
-      doubaoApiKey,
-      doubaoModelId,
-      deepseekApiKey,
-      deepseekModelId,
-      openaiApiKey,
-      openaiModelId,
-      openaiApiEndpoint,
-      openaiProviderPresetId,
-      openaiApiKeyOptional,
-      geminiApiKey,
-      geminiModelId
+      providerConfigs,
     } = useAIConfigStore.getState();
 
     const config = AI_MODEL_CONFIGS[selectedModel];
-    const apiKey =
-      selectedModel === "doubao"
-        ? doubaoApiKey
-        : selectedModel === "openai"
-          ? openaiApiKey
-          : selectedModel === "gemini"
-            ? geminiApiKey
-            : deepseekApiKey;
-    const modelId =
-      selectedModel === "doubao"
-        ? doubaoModelId
-        : selectedModel === "openai"
-          ? openaiModelId
-          : selectedModel === "gemini"
-            ? geminiModelId
-            : deepseekModelId;
+    const resolvedConfig = resolveAIProviderConfig(
+      selectedModel,
+      providerConfigs[selectedModel]
+    );
 
     set({ isChecking: true });
 
@@ -133,14 +111,12 @@ export const useGrammarStore = create<GrammarStore>((set, get) => ({
         },
         body: JSON.stringify({
           content: text,
-          apiKey,
-          model: config.requiresModelId ? modelId : config.defaultModel,
+          apiKey: resolvedConfig.apiKey,
+          model: config.requiresModelId
+            ? resolvedConfig.model || config.defaultModel
+            : config.defaultModel,
           modelType: selectedModel,
-          apiEndpoint: selectedModel === "openai" ? openaiApiEndpoint : undefined,
-          providerPresetId:
-            selectedModel === "openai" ? openaiProviderPresetId : undefined,
-          apiKeyOptional:
-            selectedModel === "openai" ? openaiApiKeyOptional : undefined,
+          apiEndpoint: resolvedConfig.apiEndpoint || undefined,
         }),
       });
 

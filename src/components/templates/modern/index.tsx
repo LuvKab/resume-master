@@ -61,7 +61,6 @@ const ModernTemplate: React.FC<ModernTemplateProps> = ({ data, template }) => {
         <table
             className="w-full border-collapse"
             style={{
-                height: `calc(297mm - ${(data.globalSettings?.pagePadding || 32) * 2}px)`,
                 tableLayout: 'fixed'
             }}
         >

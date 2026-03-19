@@ -65,7 +65,7 @@ const TimelineTemplate: React.FC<TimelineTemplateProps> = ({ data, template }) =
     };
 
     return (
-        <div className="flex flex-col w-full min-h-screen pl-[6px]" style={{ backgroundColor: colorScheme.background, color: colorScheme.text }}>
+        <div className="flex flex-col w-full pl-[6px]" style={{ backgroundColor: colorScheme.background, color: colorScheme.text }}>
             {enabledSections.map((section) => {
                 if (section.id === "basic") {
                     return <div key={section.id} className="mb-4">{renderSection(section.id)}</div>;

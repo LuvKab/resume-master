@@ -18,9 +18,22 @@ import { motion } from "framer-motion";
 import { useTranslations } from "@/i18n/compat/client";
 import { useRouter } from "@/lib/navigation";
 import { exportResumeToBrowserPrint } from "@/utils/print";
-import { exportToPdf } from "@/utils/export";
+import {
+  exportToPdf,
+  type ExportToPdfResult,
+  type PdfExportChannel,
+  type PdfExportStrategy
+} from "@/utils/export";
 import { Dock, DockIcon } from "@/components/magicui/dock";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -34,11 +47,9 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import TemplateSheet from "@/components/shared/TemplateSheet";
-import { GITHUB_REPO_URL, PDF_EXPORT_CONFIG } from "@/config";
+import { GITHUB_REPO_URL } from "@/config";
 import { cn } from "@/lib/utils";
 import { useGrammarCheck } from "@/hooks/useGrammarCheck";
-import { useAIConfigStore } from "@/store/useAIConfigStore";
-import { AI_MODEL_CONFIGS } from "@/config/ai";
 import { useResumeStore } from "@/store/useResumeStore";
 import { useAIConfiguration } from "@/hooks/useAIConfiguration";
 import { FAQDialog } from "./FAQDialog";
@@ -101,32 +112,37 @@ const PreviewDock = ({
   const { checkGrammar, isChecking } = useGrammarCheck();
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingJson, setIsExportingJson] = useState(false);
-
-  const {
-    selectedModel,
-    doubaoApiKey,
-    doubaoModelId,
-    deepseekApiKey,
-    deepseekModelId,
-    openaiApiKey,
-    openaiModelId,
-    openaiApiEndpoint
-  } = useAIConfigStore();
+  const [exportFailureOpen, setExportFailureOpen] = useState(false);
+  const [exportFailureResult, setExportFailureResult] = useState<ExportToPdfResult | null>(null);
 
   const { duplicateResume, setActiveResume, activeResumeId, activeResume, updateGlobalSettings } = useResumeStore();
   const { globalSettings = {}, title } = activeResume || {};
 
-  const handleExportPdf = async () => {
-    await exportToPdf({
+  const runPdfExport = useCallback(async (strategy: PdfExportStrategy = "auto") => {
+    const result = await exportToPdf({
       elementId: "resume-preview",
       title: title || "resume",
-      pagePadding: globalSettings?.pagePadding || 0,
       fontFamily: globalSettings?.fontFamily,
+      strategy,
       onStart: () => setIsExporting(true),
       onEnd: () => setIsExporting(false),
-      successMessage: tPdf("toast.success"),
-      errorMessage: tPdf("toast.error")
     });
+
+    if (result.success) {
+      toast.success(tPdf("toast.success"));
+      setExportFailureOpen(false);
+      setExportFailureResult(null);
+      return true;
+    }
+
+    toast.error(tPdf("toast.error"));
+    setExportFailureResult(result);
+    setExportFailureOpen(true);
+    return false;
+  }, [title, globalSettings?.fontFamily, tPdf]);
+
+  const handleExportPdf = async () => {
+    await runPdfExport("auto");
   };
 
   const handleExportJson = () => {
@@ -158,12 +174,12 @@ const PreviewDock = ({
     const resumeContent = document.getElementById("resume-preview");
     if (!resumeContent) {
       console.error("Resume content not found");
+      toast.error(t("exportFailure.previewMissing"));
       return;
     }
-    const pagePadding = globalSettings?.pagePadding || 0;
     exportResumeToBrowserPrint(
       resumeContent,
-      pagePadding,
+      undefined,
       globalSettings?.fontFamily
     );
   };
@@ -221,6 +237,9 @@ const PreviewDock = ({
   }, [activeResumeId, duplicateResume, router, setActiveResume, t]);
 
   const isLoading = isExporting || isExportingJson;
+  const exportFailedAttempts = exportFailureResult?.attempts.filter((attempt) => !attempt.ok) || [];
+  const channelLabel = (channel: PdfExportChannel) =>
+    channel === "local" ? t("exportFailure.localChannel") : t("exportFailure.remoteChannel");
 
   return (
     <>
@@ -501,6 +520,57 @@ const PreviewDock = ({
           <FAQDialog />
         </div>
       </div>
+      <Dialog open={exportFailureOpen} onOpenChange={setExportFailureOpen}>
+        <DialogContent className="sm:max-w-[560px]">
+          <DialogHeader>
+            <DialogTitle>{t("exportFailure.title")}</DialogTitle>
+            <DialogDescription>{t("exportFailure.description")}</DialogDescription>
+          </DialogHeader>
+          {exportFailedAttempts.length > 0 && (
+            <div className="rounded-md border border-border/80 bg-accent/20 px-3 py-2 space-y-2">
+              {exportFailedAttempts.map((attempt, index) => (
+                <div key={`${attempt.channel}-${index}`} className="text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">
+                    {channelLabel(attempt.channel)}:
+                  </span>{" "}
+                  {attempt.message}
+                </div>
+              ))}
+            </div>
+          )}
+          <DialogFooter className="flex-col gap-2 sm:flex-row sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setExportFailureOpen(false)}
+              disabled={isExporting}
+            >
+              {t("exportFailure.cancel")}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => void runPdfExport("local-only")}
+              disabled={isExporting}
+            >
+              {t("exportFailure.retryLocal")}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => void runPdfExport("remote-only")}
+              disabled={isExporting}
+            >
+              {t("exportFailure.retryRemote")}
+            </Button>
+            <Button
+              onClick={() => {
+                setExportFailureOpen(false);
+                handlePrint();
+              }}
+            >
+              {t("exportFailure.usePrint")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

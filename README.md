@@ -62,16 +62,16 @@ pnpm dev
 
 ### 4.1 你会看到什么
 
-1. 左侧固定显示全部服务商（DeepSeek / 豆包 / OpenAI 兼容 / Gemini）。
+1. 左侧固定显示全部服务商（DeepSeek / 豆包 / OpenAI / Gemini / Qwen / 智谱 / Kimi / SiliconFlow / Ollama / LM Studio / 自定义中转）。
 2. 点击左侧某一项，右侧只显示该服务商的配置表单。
 3. 右侧圆点勾选是“默认使用模型”，和“当前查看项”是两套状态。
 
 ### 4.2 关键规则（很重要）
 
 1. 所有 API 输入框默认都是空的。
-2. OpenAI 兼容的「服务商预设」只展示推荐值，不会自动写入输入框。
-3. 需要手动点击「应用推荐值」才会填入推荐 endpoint/model。
-4. 本地服务（Ollama / LM Studio）可按需开启「API Key 可选」。
+2. Ollama / LM Studio / 自定义中转会显示 Base URL 输入框。
+3. 只有「自定义中转」需要手动填写 Model ID；其余厂商使用内置默认模型。
+4. Ollama / LM Studio 的 API Key 可留空，留空时不会发送 Authorization。
 
 ## 5. 生产构建与运行
 
@@ -115,7 +115,7 @@ pnpm install
 
 1. API Key 是否填写正确。
 2. Endpoint 是否可访问。
-3. Model ID 是否存在于对应服务商。
+3. 若使用自定义中转，Model ID 是否填写正确。
 
 ### 7.4 本地模型无响应（Ollama/LM Studio）
 
@@ -123,7 +123,7 @@ pnpm install
 
 1. 本地服务是否已启动。
 2. Endpoint 是否填对（如 `http://127.0.0.1:11434/v1`）。
-3. 是否需要打开「API Key 可选」。
+3. API Key 可留空（默认不要求）。
 
 ## 8. 可选：服务端托管 AI（不让用户填 Key）
 

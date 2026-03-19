@@ -63,16 +63,16 @@ Path: `Dashboard -> AI Providers`
 
 ### 4.1 What you will see
 
-1. Left panel always shows all providers (DeepSeek / Doubao / OpenAI Compatible / Gemini).
+1. Left panel always shows all providers (DeepSeek / Doubao / OpenAI / Gemini / Qwen / Zhipu / Kimi / SiliconFlow / Ollama / LM Studio / Custom Proxy).
 2. Clicking a provider switches the right-side form to that provider.
 3. “Current viewing provider” and “default selected model” are separate states.
 
 ### 4.2 Important rules
 
 1. All API input fields default to empty.
-2. OpenAI-compatible provider presets only show recommendations.
-3. Recommended endpoint/model are filled only after clicking **Apply Recommended Values**.
-4. For local runtimes (Ollama / LM Studio), you can enable **API Key Optional**.
+2. Ollama / LM Studio / Custom Proxy show a **Base URL** input.
+3. Only **Custom Proxy** requires manual **Model ID** input; all other providers use built-in defaults.
+4. Ollama / LM Studio allow empty API key (no Authorization header when empty).
 
 ## 5. Production Build & Run
 
@@ -116,7 +116,7 @@ Check in order:
 
 1. API key is correct.
 2. Endpoint is reachable.
-3. Model ID exists on the provider.
+3. For Custom Proxy, Model ID is set correctly.
 
 ### 7.4 Local runtime not responding (Ollama/LM Studio)
 
@@ -124,7 +124,7 @@ Check in order:
 
 1. Local service is running.
 2. Endpoint is correct (for example `http://127.0.0.1:11434/v1`).
-3. `API Key Optional` is enabled when needed.
+3. API key can be left empty by default.
 
 ## 8. Optional: Server-managed AI
 

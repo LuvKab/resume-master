@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAIConfigStore } from "@/store/useAIConfigStore";
-import { AI_MODEL_CONFIGS } from "@/config/ai";
+import { AI_MODEL_CONFIGS, resolveAIProviderConfig } from "@/config/ai";
 import { cn } from "@/lib/utils";
 
 interface AIPolishDialogProps {
@@ -54,17 +54,7 @@ export default function AIPolishDialog({
   const [customInstructions, setCustomInstructions] = useState("");
   const {
     selectedModel,
-    doubaoApiKey,
-    doubaoModelId,
-    deepseekApiKey,
-    deepseekModelId,
-    openaiApiKey,
-    openaiModelId,
-    openaiApiEndpoint,
-    openaiProviderPresetId,
-    openaiApiKeyOptional,
-    geminiApiKey,
-    geminiModelId,
+    providerConfigs,
     isConfigured
   } = useAIConfigStore();
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -84,22 +74,10 @@ export default function AIPolishDialog({
       abortControllerRef.current = new AbortController();
 
       const config = AI_MODEL_CONFIGS[selectedModel];
-      const apiKey =
-        selectedModel === "doubao"
-          ? doubaoApiKey
-          : selectedModel === "openai"
-            ? openaiApiKey
-            : selectedModel === "gemini"
-              ? geminiApiKey
-              : deepseekApiKey;
-      const modelId =
-        selectedModel === "doubao"
-          ? doubaoModelId
-          : selectedModel === "openai"
-            ? openaiModelId
-            : selectedModel === "gemini"
-              ? geminiModelId
-              : deepseekModelId;
+      const resolvedConfig = resolveAIProviderConfig(
+        selectedModel,
+        providerConfigs[selectedModel]
+      );
 
       const response = await fetch("/api/polish", {
         method: "POST",
@@ -108,13 +86,11 @@ export default function AIPolishDialog({
         },
         body: JSON.stringify({
           content: turndownService.turndown(content),
-          apiKey,
-          apiEndpoint: selectedModel === "openai" ? openaiApiEndpoint : undefined,
-          providerPresetId:
-            selectedModel === "openai" ? openaiProviderPresetId : undefined,
-          apiKeyOptional:
-            selectedModel === "openai" ? openaiApiKeyOptional : undefined,
-          model: config.requiresModelId ? modelId : config.defaultModel,
+          apiKey: resolvedConfig.apiKey,
+          apiEndpoint: resolvedConfig.apiEndpoint || undefined,
+          model: config.requiresModelId
+            ? resolvedConfig.model || config.defaultModel
+            : config.defaultModel,
           modelType: selectedModel,
           customInstructions: customInstructions.trim() || undefined
         }),

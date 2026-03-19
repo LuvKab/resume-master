@@ -54,7 +54,7 @@ const MinimalistTemplate: React.FC<MinimalistTemplateProps> = ({ data, template 
     };
 
     return (
-        <div className="flex flex-col w-full min-h-screen" style={{ backgroundColor: colorScheme.background, color: colorScheme.text }}>
+        <div className="flex flex-col w-full" style={{ backgroundColor: colorScheme.background, color: colorScheme.text }}>
             {enabledSections.map((section) => (
                 <div key={section.id} className="w-full">{renderSection(section.id)}</div>
             ))}

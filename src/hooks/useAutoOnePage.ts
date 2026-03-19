@@ -1,9 +1,10 @@
 import { useMemo } from "react";
+import { A4_HEIGHT_PX } from "@/lib/a4";
 
-const MM_TO_PX = 3.78;
-const A4_HEIGHT_PX = 297 * MM_TO_PX;
-// 允许更积极地缩放，降低“看似开启但实际上仍大量溢出”的情况
-const MIN_SCALE = 0.72;
+// 尽可能缩小超页内容，但保留可读性底线
+export const AUTO_ONE_PAGE_MIN_SCALE = 0.5;
+// 内容较少时尽可能放大，但限制在可用视觉范围内
+export const AUTO_ONE_PAGE_MAX_SCALE = 1.5;
 
 interface UseAutoOnePageOptions {
   contentHeight: number;
@@ -28,37 +29,28 @@ export function useAutoOnePage({
       return { scaleFactor: 1, isScaled: false, cannotFit: false };
     }
 
-    // A4 可用内容高度 = A4 总高度 - 上下页边距
-    const availableHeight = A4_HEIGHT_PX - 2 * pagePadding;
-    if (availableHeight <= 0) {
+    // 一页纸按 A4 内容边界适配（扣除上下页边距），而不是整张纸高度
+    const availableContentHeight = A4_HEIGHT_PX - 2 * pagePadding;
+    if (availableContentHeight <= 0) {
       return { scaleFactor: 1, isScaled: false, cannotFit: false };
     }
 
-    // 实际内容高度（去掉 #resume-preview 的上下 padding）
+    // 测量层高度包含上下 padding，缩放计算时仅比较真实内容区高度
     const actualContentHeight = contentHeight - 2 * pagePadding;
-
     if (actualContentHeight <= 0) {
       return { scaleFactor: 1, isScaled: false, cannotFit: false };
     }
 
-    // 统一按可用高度与实际内容高度计算，支持内容不足时放大到一页
-    const idealScale = availableHeight / actualContentHeight;
+    const idealScale = availableContentHeight / actualContentHeight;
+    const clampedScale = Math.max(
+      AUTO_ONE_PAGE_MIN_SCALE,
+      Math.min(AUTO_ONE_PAGE_MAX_SCALE, idealScale)
+    );
 
-    if (idealScale >= 1) {
-      // 内容不足一页时放大；恰好一页时保持原样
-      return {
-        scaleFactor: idealScale,
-        isScaled: Math.abs(idealScale - 1) > 0.001,
-        cannotFit: false,
-      };
-    }
-
-    if (idealScale >= MIN_SCALE) {
-      // 在合理范围内，直接缩放
-      return { scaleFactor: idealScale, isScaled: true, cannotFit: false };
-    }
-
-    // 超出合理缩放范围，仍按下限缩放，但标记 cannotFit
-    return { scaleFactor: MIN_SCALE, isScaled: true, cannotFit: true };
+    return {
+      scaleFactor: clampedScale,
+      isScaled: Math.abs(clampedScale - 1) > 0.001,
+      cannotFit: idealScale < AUTO_ONE_PAGE_MIN_SCALE,
+    };
   }, [contentHeight, pagePadding, enabled]);
 }

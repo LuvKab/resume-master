@@ -188,11 +188,17 @@
         "currentModel": "当前使用的模型",
         "selectModel": "选择模型",
         "getApiKey": "获取 API Key",
+        "common": {
+          "apiEndpoint": "Base URL (API 端点)",
+          "apiEndpointPlaceholder": "例如：https://openai.example.org/v1",
+          "modelId": "模型 ID",
+          "modelIdPlaceholder": "请输入模型 ID",
+          "apiKeyOptionalHint": "本地服务支持 Key 为空；留空时不会发送 Authorization 请求头"
+        },
         "doubao": {
           "title": "豆包",
           "description": "在火山引擎获取 API 密钥",
-          "apiKey": "API Key",
-          "modelId": "模型 ID"
+          "apiKey": "API Key"
         },
         "deepseek": {
           "title": "DeepSeek",
@@ -200,24 +206,49 @@
           "apiKey": "API Key"
         },
         "openai": {
-          "title": "OpenAI 兼容",
-          "description": "支持官方平台、中转网关与本地模型（Ollama / LM Studio）",
-          "apiKey": "API Key",
-          "modelId": "模型 ID",
-          "apiEndpoint": "API 端点，如：https://openai.example.org/v1",
-          "providerPreset": "服务商预设",
-          "applyRecommended": "应用推荐值",
-          "recommendedEndpoint": "推荐 Endpoint",
-          "recommendedModel": "推荐模型",
-          "notProvided": "未提供",
-          "apiKeyOptional": "API Key 可选",
-          "apiKeyOptionalDescription": "本地服务或无需鉴权的网关可开启；开启后允许 Key 为空"
+          "title": "OpenAI",
+          "description": "OpenAI 官方 API",
+          "apiKey": "API Key"
         },
         "gemini": {
           "title": "Gemini",
-          "description": "支持润色、语法检查和 PDF 图片识别导入。推荐模型 ID：gemini-flash-latest",
-          "apiKey": "Gemini API Key",
-          "modelId": "Gemini 模型 ID"
+          "description": "Google Gemini API（用于润色、语法检查和 PDF 图片识别导入）",
+          "apiKey": "Gemini API Key"
+        },
+        "qwen": {
+          "title": "通义千问 (Qwen)",
+          "description": "阿里云 DashScope OpenAI 兼容接口",
+          "apiKey": "API Key"
+        },
+        "zhipu": {
+          "title": "智谱 GLM",
+          "description": "智谱 AI OpenAI 兼容接口",
+          "apiKey": "API Key"
+        },
+        "kimi": {
+          "title": "Kimi",
+          "description": "Moonshot OpenAI 兼容接口",
+          "apiKey": "API Key"
+        },
+        "siliconflow": {
+          "title": "SiliconFlow",
+          "description": "SiliconFlow OpenAI 兼容接口",
+          "apiKey": "API Key"
+        },
+        "ollama": {
+          "title": "Ollama (Local)",
+          "description": "本地 Ollama 服务",
+          "apiKey": "API Key（可留空）"
+        },
+        "lmstudio": {
+          "title": "LM Studio (Local)",
+          "description": "本地 LM Studio OpenAI 兼容服务",
+          "apiKey": "API Key（可留空）"
+        },
+        "customProxy": {
+          "title": "自定义中转代理",
+          "description": "任意 OpenAI 兼容中转或私有网关",
+          "apiKey": "API Key"
         }
       }
     },
@@ -305,6 +336,12 @@
           "misans": "MiSans",
           "notosanssc": "Noto Sans SC",
           "sourcehanserifsc": "思源宋体",
+          "systemui": "系统无衬线",
+          "songti": "宋体",
+          "kaiti": "楷体",
+          "fangsong": "仿宋",
+          "georgia": "Georgia",
+          "arial": "Arial",
           "note": "MiSans 依据其许可免费商用；使用本项目时请保留 MiSans 字体说明。"
         },
         "lineHeight": {
@@ -722,7 +759,22 @@
       "tooltip": "自动一页纸",
       "enabled": "已开启一页纸模式",
       "disabled": "已关闭一页纸模式",
-      "cannotFit": "内容较多，已尽量压缩但无法完美一页，建议精简内容, 也可在此基础上调节页边距、字体大小等左侧设置栏选项"
+      "cannotFit": "内容较多，已尽量压缩但无法完美一页，建议精简内容, 也可在此基础上调节页边距、字体大小等左侧设置栏选项",
+      "a4Boundary": "A4 一页边界",
+      "statusFitted": "已适配 A4 单页",
+      "statusCannotFit": "A4 已达缩放下限",
+      "usage": "内容占比 {ratio}%"
+    },
+    "exportFailure": {
+      "title": "PDF导出失败",
+      "description": "本次导出未成功，你可以选择重试通道或改用浏览器打印导出。",
+      "localChannel": "本地导出通道",
+      "remoteChannel": "兼容导出通道",
+      "retryLocal": "重试本地导出",
+      "retryRemote": "重试兼容通道",
+      "usePrint": "改用浏览器打印",
+      "cancel": "取消",
+      "previewMissing": "未找到简历预览区域，无法导出"
     }
   },
   "aiPolishDialog": {

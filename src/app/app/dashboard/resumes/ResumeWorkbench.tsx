@@ -18,6 +18,7 @@ import { getConfig, getFileHandle, verifyPermission } from "@/utils/fileSystem";
 import { useResumeStore } from "@/store/useResumeStore";
 import { useAIConfigStore } from "@/store/useAIConfigStore";
 import { DEFAULT_TEMPLATES } from "@/config";
+import { resolveAIProviderConfig } from "@/config/ai";
 import { CreateResumeModal } from "./CreateResumeModal";
 import { ImportResumeDialog } from "./ImportResumeDialog";
 import { ResumeCardItem } from "./ResumeCardItem";
@@ -44,10 +45,7 @@ export const ResumeWorkbench = () => {
         deleteResume,
         createResume,
     } = useResumeStore();
-    const {
-        geminiApiKey,
-        geminiModelId,
-    } = useAIConfigStore();
+    const { providerConfigs } = useAIConfigStore();
     const router = useRouter();
     const [hasConfiguredFolder, setHasConfiguredFolder] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -203,7 +201,9 @@ export const ResumeWorkbench = () => {
     };
 
     const importResumeFromPdf = async (file: File) => {
-        if (!geminiApiKey || !geminiModelId) {
+        const geminiConfig = resolveAIProviderConfig("gemini", providerConfigs.gemini);
+
+        if (!geminiConfig.apiKey) {
             toast.error(t("dashboard.resumes.importDialog.geminiConfigRequired"));
             router.push("/app/dashboard/ai");
             return;
@@ -221,8 +221,8 @@ export const ResumeWorkbench = () => {
             },
             body: JSON.stringify({
                 images: pdfImages,
-                apiKey: geminiApiKey,
-                model: geminiModelId,
+                apiKey: geminiConfig.apiKey,
+                model: geminiConfig.model,
                 locale,
             }),
         });

@@ -1,4 +1,3 @@
-import { toast } from "sonner";
 import { PDF_EXPORT_CONFIG } from "@/config";
 import { normalizeFontFamily } from "@/utils/fonts";
 
@@ -71,13 +70,81 @@ export const optimizeImages = async (element: HTMLElement) => {
 export interface ExportToPdfOptions {
   elementId: string;
   title: string;
-  pagePadding: number;
+  pagePadding?: number;
   fontFamily?: string;
   onStart?: () => void;
   onEnd?: () => void;
-  successMessage?: string;
+  strategy?: PdfExportStrategy;
+}
+
+export type PdfExportChannel = "local" | "remote";
+export type PdfExportStrategy = "auto" | "local-only" | "remote-only";
+
+export interface PdfExportAttempt {
+  channel: PdfExportChannel;
+  url: string;
+  ok: boolean;
+  status?: number;
+  code?: string;
+  message: string;
+}
+
+export interface ExportToPdfResult {
+  success: boolean;
+  usedChannel?: PdfExportChannel;
+  attempts: PdfExportAttempt[];
+  errorCode?: string;
   errorMessage?: string;
 }
+
+interface ServerErrorPayload {
+  code?: string;
+  message?: string;
+  error?: string;
+  details?: string;
+}
+
+const resolveChannels = (strategy: PdfExportStrategy): PdfExportChannel[] => {
+  if (strategy === "local-only") return ["local"];
+  if (strategy === "remote-only") return ["remote"];
+  return ["local", "remote"];
+};
+
+const resolveChannelUrl = (channel: PdfExportChannel) =>
+  channel === "local"
+    ? PDF_EXPORT_CONFIG.LOCAL_SERVER_URL
+    : PDF_EXPORT_CONFIG.REMOTE_SERVER_URL;
+
+const resolveMargin = (element: HTMLElement, fallback?: number) => {
+  const computedPaddingTop = Number.parseFloat(
+    window.getComputedStyle(element).paddingTop
+  );
+
+  if (Number.isFinite(computedPaddingTop)) {
+    return Math.max(0, computedPaddingTop);
+  }
+
+  return Math.max(0, fallback || 0);
+};
+
+const parseErrorPayload = async (response: Response) => {
+  let payload: ServerErrorPayload | null = null;
+  try {
+    payload = (await response.json()) as ServerErrorPayload;
+  } catch {
+    payload = null;
+  }
+
+  const message =
+    payload?.message ||
+    payload?.error ||
+    `HTTP ${response.status} ${response.statusText}`.trim();
+
+  return {
+    code: payload?.code,
+    message: payload?.details ? `${message} (${payload.details})` : message,
+  };
+};
 
 export const exportToPdf = async ({
   elementId,
@@ -86,11 +153,11 @@ export const exportToPdf = async ({
   fontFamily,
   onStart,
   onEnd,
-  successMessage,
-  errorMessage
-}: ExportToPdfOptions) => {
+  strategy = "auto",
+}: ExportToPdfOptions): Promise<ExportToPdfResult> => {
   const exportStartTime = performance.now();
   onStart?.();
+  const attempts: PdfExportAttempt[] = [];
 
   try {
     const pdfElement = document.querySelector<HTMLElement>(`#${elementId}`);
@@ -98,6 +165,7 @@ export const exportToPdf = async ({
       throw new Error(`PDF element #${elementId} not found`);
     }
 
+    const margin = resolveMargin(pdfElement, pagePadding);
     const clonedElement = pdfElement.cloneNode(true) as HTMLElement;
     const selectedFontFamily = normalizeFontFamily(fontFamily);
     const transformValue = clonedElement.style.transform || "";
@@ -124,6 +192,14 @@ export const exportToPdf = async ({
     pageBreakLines.forEach((line) => {
       line.style.display = "none";
     });
+    const a4BoundaryLines = clonedElement.querySelectorAll<HTMLElement>(".a4-boundary-line");
+    a4BoundaryLines.forEach((line) => {
+      line.style.display = "none";
+    });
+    const a4ContentBoundaries = clonedElement.querySelectorAll<HTMLElement>(".a4-content-boundary");
+    a4ContentBoundaries.forEach((boundary) => {
+      boundary.style.display = "none";
+    });
 
     const [capturedStyles] = await Promise.all([
       getOptimizedStyles(),
@@ -144,50 +220,94 @@ export const exportToPdf = async ({
     const payload = JSON.stringify({
       content: clonedElement.outerHTML,
       styles,
-      margin: pagePadding
+      margin,
     });
 
-    const requestPdf = async (url: string, mode: RequestMode) => {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: payload,
-        mode,
-        signal: AbortSignal.timeout(PDF_EXPORT_CONFIG.TIMEOUT)
-      });
+    const channels = resolveChannels(strategy);
 
-      if (!response.ok) {
-        throw new Error(`PDF generation failed (${url}): ${response.status}`);
+    for (const channel of channels) {
+      const url = resolveChannelUrl(channel);
+      const mode: RequestMode = channel === "local" ? "same-origin" : "cors";
+
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: payload,
+          mode,
+          signal: AbortSignal.timeout(PDF_EXPORT_CONFIG.TIMEOUT)
+        });
+
+        if (!response.ok) {
+          const parsedError = await parseErrorPayload(response);
+          attempts.push({
+            channel,
+            url,
+            ok: false,
+            status: response.status,
+            code: parsedError.code,
+            message: parsedError.message,
+          });
+          continue;
+        }
+
+        const blob = await response.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = blobUrl;
+        link.download = `${title}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(blobUrl);
+
+        attempts.push({
+          channel,
+          url,
+          ok: true,
+          status: response.status,
+          message: "PDF generated successfully",
+        });
+
+        console.log(`Total export took ${performance.now() - exportStartTime}ms`);
+        return {
+          success: true,
+          usedChannel: channel,
+          attempts,
+        };
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Unknown export error";
+        attempts.push({
+          channel,
+          url,
+          ok: false,
+          message,
+        });
       }
-
-      return response;
-    };
-
-    let response: Response;
-    try {
-      response = await requestPdf(PDF_EXPORT_CONFIG.LOCAL_SERVER_URL, "same-origin");
-    } catch (localError) {
-      console.warn("Local PDF export failed, fallback to remote.", localError);
-      toast.info("本地导出失败，已自动切换兼容通道");
-      response = await requestPdf(PDF_EXPORT_CONFIG.REMOTE_SERVER_URL, "cors");
     }
-
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${title}.pdf`;
-    link.click();
-
-    window.URL.revokeObjectURL(url);
-    if (successMessage) toast.success(successMessage);
-    console.log(`Total export took ${performance.now() - exportStartTime}ms`);
   } catch (error) {
     console.error("Export error:", error);
-    if (errorMessage) toast.error(errorMessage);
+    const message =
+      error instanceof Error ? error.message : "Unknown export error";
+    attempts.push({
+      channel: "local",
+      url: resolveChannelUrl("local"),
+      ok: false,
+      message,
+    });
   } finally {
     onEnd?.();
   }
+
+  const lastFailure = attempts
+    .filter((attempt) => !attempt.ok)
+    .slice(-1)[0];
+
+  return {
+    success: false,
+    attempts,
+    errorCode: lastFailure?.code,
+    errorMessage: lastFailure?.message,
+  };
 };

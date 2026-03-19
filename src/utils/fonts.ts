@@ -61,9 +61,9 @@ const FONT_DEFINITIONS: FontDefinition[] = [
       },
       {
         family: "MiSans",
-        url: "/fonts/MiSans-Bold.ttf",
+        url: "/fonts/MiSans-Medium.ttf",
         format: "truetype",
-        weight: "700",
+        weight: "500",
         style: "normal"
       }
     ]
@@ -131,6 +131,66 @@ const FONT_DEFINITIONS: FontDefinition[] = [
         style: "normal"
       }
     ]
+  },
+  {
+    labelKey: "systemui",
+    value:
+      "\"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Arial, sans-serif",
+    aliases: [
+      "\"PingFang SC\", \"Hiragino Sans GB\", \"Microsoft YaHei\", \"Helvetica Neue\", Arial, sans-serif",
+      "PingFang SC, sans-serif",
+      "\"Microsoft YaHei\", \"微软雅黑\", sans-serif",
+      "system-ui, sans-serif"
+    ],
+    sources: []
+  },
+  {
+    labelKey: "songti",
+    value: "\"STSong\", \"SimSun\", \"Songti SC\", serif",
+    aliases: [
+      "\"STSong\", \"SimSun\", \"Songti SC\", serif",
+      "SimSun, serif",
+      "Songti SC, serif"
+    ],
+    sources: []
+  },
+  {
+    labelKey: "kaiti",
+    value: "\"KaiTi\", \"Kaiti SC\", serif",
+    aliases: [
+      "\"KaiTi\", \"Kaiti SC\", serif",
+      "KaiTi, serif",
+      "Kaiti SC, serif"
+    ],
+    sources: []
+  },
+  {
+    labelKey: "fangsong",
+    value: "\"FangSong\", \"STFangsong\", serif",
+    aliases: [
+      "\"FangSong\", \"STFangsong\", serif",
+      "FangSong, serif",
+      "STFangsong, serif"
+    ],
+    sources: []
+  },
+  {
+    labelKey: "georgia",
+    value: "Georgia, \"Times New Roman\", serif",
+    aliases: [
+      "Georgia, \"Times New Roman\", serif",
+      "Georgia, serif"
+    ],
+    sources: []
+  },
+  {
+    labelKey: "arial",
+    value: "Arial, \"Helvetica Neue\", sans-serif",
+    aliases: [
+      "Arial, \"Helvetica Neue\", sans-serif",
+      "Arial, sans-serif"
+    ],
+    sources: []
   }
 ];
 

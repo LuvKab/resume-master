@@ -67,6 +67,8 @@ const BaseInfo = ({ basic = {} as BasicInfo, globalSettings, template }: BaseInf
     };
 
     const styles = layoutStyles[layout as keyof typeof layoutStyles] || layoutStyles.left;
+    const nameFontSize = ((globalSettings?.headerSize || 18) / 18) * 30;
+    const titleFontSize = ((globalSettings?.subheaderSize || 16) / 16) * 18;
 
     return (
         <SectionWrapper sectionId="basic">
@@ -75,10 +77,10 @@ const BaseInfo = ({ basic = {} as BasicInfo, globalSettings, template }: BaseInf
                     {PhotoComponent}
                     <div className={cn("flex flex-col", styles.nameTitle)} style={{ color: "#fff" }}>
                         {nameField.visible !== false && basic[nameField.key] && (
-                            <motion.h1 layout="position" className="font-bold whitespace-pre-wrap break-words" style={{ fontSize: "30px", color: "#fff" }}>{basic[nameField.key] as string}</motion.h1>
+                            <motion.h1 layout="position" className="font-bold whitespace-pre-wrap break-words" style={{ fontSize: `${nameFontSize}px`, color: "#fff" }}>{basic[nameField.key] as string}</motion.h1>
                         )}
                         {titleField.visible !== false && basic[titleField.key] && (
-                            <motion.h2 layout="position" className="whitespace-pre-wrap break-words" style={{ fontSize: "18px", color: "#fff" }}>{basic[titleField.key] as string}</motion.h2>
+                            <motion.h2 layout="position" className="whitespace-pre-wrap break-words" style={{ fontSize: `${titleFontSize}px`, color: "#fff" }}>{basic[titleField.key] as string}</motion.h2>
                         )}
                     </div>
                 </div>

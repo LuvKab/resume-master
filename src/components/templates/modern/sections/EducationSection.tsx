@@ -20,6 +20,8 @@ const EducationSection = ({ education, globalSettings, showTitle = true, variant
     const flexLayout = globalSettings?.flexibleHeaderLayout;
 
     const isSidebar = variant === "sidebar";
+    const sidebarMetaFontSize = Math.max(10, (globalSettings?.baseFontSize || 14) - 2);
+    const sidebarItemSpacing = Math.max(8, globalSettings?.paragraphSpacing || 12);
 
     return (
         <SectionWrapper sectionId="education" style={{ marginTop: isSidebar ? 0 : `${globalSettings?.sectionSpacing || 24}px` }}>
@@ -31,7 +33,7 @@ const EducationSection = ({ education, globalSettings, showTitle = true, variant
             />
             <AnimatePresence mode="popLayout">
                 {visibleEducation?.map((edu) => (
-                    <motion.div key={edu.id} layout="position" style={{ marginTop: isSidebar ? "12px" : `${globalSettings?.paragraphSpacing}px` }}>
+                    <motion.div key={edu.id} layout="position" style={{ marginTop: isSidebar ? `${sidebarItemSpacing}px` : `${globalSettings?.paragraphSpacing}px` }}>
                         <div className={cn("flex gap-4 items-center justify-between", isSidebar && "flex-col items-start gap-1")}>
                             <div className={cn("font-bold truncate", !flexLayout && !isSidebar && "flex-1")}
                                 style={{ fontSize: `${isSidebar ? (globalSettings?.baseFontSize || 14) + 2 : (globalSettings?.subheaderSize || 16)}px`, color: isSidebar ? "#fff" : "inherit" }}>
@@ -46,13 +48,13 @@ const EducationSection = ({ education, globalSettings, showTitle = true, variant
                             )}
                             <span className={cn("text-subtitleFont shrink-0 whitespace-nowrap", !flexLayout && !isSidebar && "text-right", isSidebar && "opacity-80")}
                                 suppressHydrationWarning
-                                style={{ fontSize: isSidebar ? "12px" : `${globalSettings?.subheaderSize || 16}px`, color: isSidebar ? "#fff" : "inherit" }}>
+                                style={{ fontSize: isSidebar ? `${sidebarMetaFontSize}px` : `${globalSettings?.subheaderSize || 16}px`, color: isSidebar ? "#fff" : "inherit" }}>
                                 {`${formatDateString(edu.startDate, locale)} - ${formatDateString(edu.endDate, locale)}`}
                             </span>
                         </div>
                         {(!centerSubtitle || isSidebar) && (
                             <div className={cn("text-subtitleFont mt-0.5", isSidebar ? "text-xs opacity-90" : "mt-1")}
-                                style={{ fontSize: isSidebar ? "12px" : `${globalSettings?.subheaderSize || 16}px`, color: isSidebar ? "#fff" : "inherit" }}>
+                                style={{ fontSize: isSidebar ? `${sidebarMetaFontSize}px` : `${globalSettings?.subheaderSize || 16}px`, color: isSidebar ? "#fff" : "inherit" }}>
                                 {[edu.major, edu.degree].filter(Boolean).join(" · ")}
                                 {edu.gpa && ` · GPA ${edu.gpa}`}
                             </div>

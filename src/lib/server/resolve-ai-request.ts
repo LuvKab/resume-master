@@ -8,10 +8,17 @@ type RequestPayload = {
 };
 
 const SUPPORTED_MODELS: AIModelType[] = [
-  "doubao",
   "deepseek",
+  "doubao",
   "openai",
-  "gemini"
+  "gemini",
+  "qwen",
+  "zhipu",
+  "kimi",
+  "siliconflow",
+  "ollama",
+  "lmstudio",
+  "customProxy",
 ];
 
 function normalizeModelType(modelType?: string): AIModelType {
@@ -40,6 +47,13 @@ function envForModel(modelType: AIModelType) {
         model: process.env.DEEPSEEK_MODEL_ID
       };
     case "openai":
+    case "qwen":
+    case "zhipu":
+    case "kimi":
+    case "siliconflow":
+    case "ollama":
+    case "lmstudio":
+    case "customProxy":
       return {
         apiKey: process.env.OPENAI_API_KEY,
         model: process.env.OPENAI_MODEL_ID,
